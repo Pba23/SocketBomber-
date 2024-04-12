@@ -1,6 +1,6 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
-const { createElement, } = router;
+const { createElement, addListener } = router;
 
 class Chat extends router.Component {
     render() {
@@ -111,6 +111,7 @@ class Game extends router.Component {
             content: ''
         }
     }
+    ws = null;
     constructor(props, stateManager) {
         super(props, stateManager);
         this.state = {
@@ -142,7 +143,12 @@ class Game extends router.Component {
         }
         const ws = new WebSocket(`ws://${window.location.host}/gamesocket`);
         ws.onopen = () => {
+            this.ws = ws;
             ws.send(JSON.stringify(this.request));
+            const out = setTimeout(() => {
+                this.activateControls();
+                clearTimeout(out);
+            }, 500);
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
@@ -150,7 +156,7 @@ class Game extends router.Component {
                     this.redirectTo('/');
                     return;
                 }
-                console.log(data);
+
             }
         }
     }
@@ -173,6 +179,47 @@ class Game extends router.Component {
     removeState() {
         localStorage.removeItem('game');
     }
+
+    disableControls() {
+        removeListeners(window, "keydown", this.handleKeyDown);
+    }
+
+    activateControls() {
+        addListener(window, "keydown", this.handleKeyDown);
+    }
+
+    handleKeyDown = (event) => {
+        const move = { x: 0, y: 0 };
+        console.log(event.key);
+        switch (event.key) {
+            case "ArrowUp":
+                move.y = -1;
+                break;
+            case "ArrowDown":
+                move.y = 1;
+                break;
+            case "ArrowLeft":
+                move.x = -1;
+                break;
+            case "ArrowRight":
+                move.x = 1;
+                break;
+            case " ":
+                // Handle other keys as needed
+                webSocketService.send("placeBomb", {});
+                break;
+            default:
+                return;
+        }
+
+        // Send move to server
+        webSocketService.send({
+            type: "move",
+            playerId: this.state.player.id,
+            teamId: this.state.team.id,
+            position: move
+        });
+    };
 
     render() {
         console.table(this.state.team.map);
