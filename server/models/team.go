@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -25,6 +26,123 @@ type Team struct {
 	Players map[uuid.UUID]*Player `json:"players"`
 	State   State                 `json:"state"`
 	GameMap *Map                  `json:"map"`
+	Bombs   []*Bomb               `json:"bomb"`
+}
+
+type Bomb struct {
+	Id       uuid.UUID
+	Position Position `json:"position"`
+	Timer    int      `json:"timer"`
+	Power    int      `json:"power"`
+	Exploded bool     `json:"exploded"`
+}
+
+func (b *Bomb) NewBomb(x, y int) {
+	b.Position = Position{X: x, Y: y}
+	b.Id = uuid.New()
+	b.Exploded = false
+	b.Timer = 3
+	b.Power = 1
+}
+
+func (T *Team) PlaceBomb(x, y int) (bool, uuid.UUID) {
+	b := &Bomb{}
+	b.NewBomb(x, y)
+	T.Bombs = append(T.Bombs, b)
+	return true, b.Id
+}
+
+func (T *Team) ExplodeBomb(id uuid.UUID) []int {
+	deadPlayers := []int{}
+	for _, b := range T.Bombs {
+		if b.Id == id {
+			deadPlayers = b.Explode(T.GameMap)
+			// T.Bombs = append(T.Bombs[:i], T.Bombs[i+1:]...)
+			break
+		}
+	}
+	return deadPlayers
+}
+
+func (T *Team) RemoveExplosion(id uuid.UUID) {
+	log.Println("Removing explosion")
+	for i, b := range T.Bombs {
+		if b.Id == id {
+			b.RemoveExplosion(T.GameMap)
+			T.Bombs = append(T.Bombs[:i], T.Bombs[i+1:]...)
+		}
+	}
+}
+
+func (b *Bomb) Explode(gameMap *Map) []int {
+	b.Timer = 0
+	b.Exploded = true
+	deadPlayers := []int{}
+
+	cell := (*gameMap)[b.Position.X][b.Position.Y]
+	if cell != -1 {
+		(*gameMap)[b.Position.X][b.Position.Y] = 100
+		if cell > 2 && cell < 100 {
+			deadPlayers = append(deadPlayers, cell)
+		}
+	}
+	// Assuming you have a global game map or grid
+	// Replace the positions around the bomb with 100
+	if b.Position.X+1 < len(*gameMap) {
+		cell := (*gameMap)[b.Position.X+1][b.Position.Y]
+		if cell != -1 {
+			(*gameMap)[b.Position.X+1][b.Position.Y] = 100
+			if cell > 2 && cell < 100 {
+				deadPlayers = append(deadPlayers, cell)
+			}
+		}
+	}
+	if b.Position.X-1 >= 0 {
+		cell := (*gameMap)[b.Position.X-1][b.Position.Y]
+		if cell != -1 {
+			(*gameMap)[b.Position.X-1][b.Position.Y] = 100
+			if cell > 2 && cell < 100 {
+				deadPlayers = append(deadPlayers, cell)
+			}
+		}
+	}
+	if b.Position.Y+1 < len((*gameMap)[0]) {
+		cell := (*gameMap)[b.Position.X][b.Position.Y+1]
+		if cell != -1 {
+			(*gameMap)[b.Position.X][b.Position.Y+1] = 100
+			if cell > 2 && cell < 100 {
+				deadPlayers = append(deadPlayers, cell)
+			}
+		}
+	}
+	if b.Position.Y-1 >= 0 {
+		cell := (*gameMap)[b.Position.X][b.Position.Y-1]
+		if cell != -1 {
+			(*gameMap)[b.Position.X][b.Position.Y-1] = 100
+			if cell > 2 && cell < 100 {
+				deadPlayers = append(deadPlayers, cell)
+			}
+		}
+	}
+	return deadPlayers
+}
+
+func (b *Bomb) RemoveExplosion(gameMap *Map) {
+	(*gameMap)[b.Position.X][b.Position.Y] = 0
+	// Replace the positions around the bomb with 0
+	if b.Position.X+1 < len(*gameMap) && (*gameMap)[b.Position.X+1][b.Position.Y] != -1 {
+		(*gameMap)[b.Position.X+1][b.Position.Y] = 0
+	}
+	if b.Position.X-1 >= 0 && (*gameMap)[b.Position.X-1][b.Position.Y] != -1 {
+		(*gameMap)[b.Position.X-1][b.Position.Y] = 0
+	}
+	if b.Position.Y+1 < len((*gameMap)[0]) && (*gameMap)[b.Position.X][b.Position.Y+1] != -1 {
+		(*gameMap)[b.Position.X][b.Position.Y+1] = 0
+	}
+	if b.Position.Y-1 >= 0 && (*gameMap)[b.Position.X][b.Position.Y-1] != -1 {
+		(*gameMap)[b.Position.X][b.Position.Y-1] = 0
+	}
+	log.Println("Explosion removed", gameMap)
 }
 
 // NewTeam creates a new team.
@@ -35,6 +153,7 @@ func NewTeam(name string, size int) *Team {
 		Players: make(map[uuid.UUID]*Player, MaxPlayers),
 		State:   Waiting,
 		GameMap: NewMap(size),
+		Bombs:   []*Bomb{},
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -49,7 +50,7 @@ func main() {
 
 	mux.HandleFunc("/gamesocket", game)
 
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe("192.168.4.129:8080", mux)
 }
 
 type response struct {
@@ -64,9 +65,10 @@ type response struct {
 		} `json:"position"`
 	} `json:"player"`
 	Team struct {
-		ID      uuid.UUID    `json:"id"`
-		Name    string       `json:"name"`
-		State   models.State `json:"state"`
+		ID      uuid.UUID      `json:"id"`
+		Name    string         `json:"name"`
+		State   models.State   `json:"state"`
+		Bombs   []*models.Bomb `json:"bombs"`
 		Players []struct {
 			ID       uuid.UUID `json:"id"`
 			Nickname string    `json:"nickname"`
@@ -87,6 +89,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 	r.Team.Name = team.Name
 	r.Team.State = team.State
 	r.Type = t
+	r.Team.Bombs = team.Bombs
 	p := team.GetPlayer(id)
 	r.Player = struct {
 		ID       uuid.UUID `json:"id"`
@@ -212,6 +215,8 @@ const (
 	Join          ReqType = "join"
 	Move          ReqType = "move"
 	GameMapUpdate ReqType = "gameMapUpdate"
+	BombExploded  ReqType = "bombExploded"
+	PlaceBomb     ReqType = "placeBomb"
 	Playing       ReqType = "playing"
 )
 
@@ -365,6 +370,60 @@ func game(w http.ResponseWriter, r *http.Request) {
 			} else {
 				conn.WriteJSON(map[string]string{"invalid": "Invalid move"})
 			}
+
+		} else if req.Type == PlaceBomb {
+			player.Position.Lock()
+
+			ok, id := team.PlaceBomb(player.Position.X, player.Position.Y)
+			for _, p := range team.Players {
+				resp := new(response)
+				resp.FromTeam(team, p.ID, PlaceBomb)
+				err := p.Conn.WriteJSON(resp)
+				if err != nil {
+					continue
+				}
+			}
+			if ok {
+				go func(id uuid.UUID) {
+					for _, bomb := range team.Bombs {
+						if bomb.Id == id {
+							time.Sleep(time.Duration(bomb.Timer) * time.Second)
+							deadPlayers := team.ExplodeBomb(bomb.Id)
+							for _, v := range deadPlayers {
+								for _, p := range team.Players {
+									if p.MapId == v {
+										p.LifeDown()
+										//
+										//
+										//
+										team.AddPlayer(p)
+									}
+
+								}
+							}
+							for _, p := range team.Players {
+								resp := new(response)
+								resp.FromTeam(team, p.ID, BombExploded)
+								err := p.Conn.WriteJSON(resp)
+								if err != nil {
+									continue
+								}
+							}
+							time.Sleep(2 * time.Second)
+							team.RemoveExplosion(bomb.Id)
+							for _, p := range team.Players {
+								resp := new(response)
+								resp.FromTeam(team, p.ID, GameMapUpdate)
+								err := p.Conn.WriteJSON(resp)
+								if err != nil {
+									continue
+								}
+							}
+						}
+					}
+				}(id)
+			}
+			player.Position.Unlock()
 
 		} else {
 			conn.WriteJSON(map[string]string{"error": "Invalid request type"})

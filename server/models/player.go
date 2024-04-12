@@ -14,6 +14,7 @@ type Player struct {
 	Avatar   string    `json:"avatar"`
 	Nickname string    `json:"nickname"`
 	Position *Position `json:"position"`
+	Life     int       `json:"life"`
 	Team     *Team     `json:"team"`
 	Conn     *websocket.Conn
 }
@@ -26,6 +27,7 @@ func NewPlayer(nickname string, position *Position, team *Team) *Player {
 		Position: position,
 		Team:     team,
 		Conn:     nil,
+		Life:     3,
 	}
 }
 
@@ -41,4 +43,13 @@ func (p *Player) SetTeam(team *Team) {
 	p.Lock()
 	defer p.Unlock()
 	p.Team = team
+}
+
+func (p *Player) LifeDown() bool {
+	p.Lock()
+	defer p.Unlock()
+	if p.Life > 0 {
+		p.Life--
+	}
+	return p.Life == 0
 }

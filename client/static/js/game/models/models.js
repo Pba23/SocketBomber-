@@ -29,12 +29,13 @@ class Player {
 }
 
 class Team {
-    constructor(id = '', name = '', state = '', players = [], map = []) {
+    constructor(id = '', name = '', state = '', players = [], map = [],bombs = []) {
         this.id = id;
         this.name = name;
         this.state = state;
         this.players = players.map(player => new Player().fromJSON(player));
         this.map = map;
+        this.bombs = bombs;
     }
 
     fromJSON(json = {}) {
@@ -44,6 +45,7 @@ class Team {
         this.state = json.state || this.state;
         this.players = Array.isArray(json.players) ? json.players.map(player => new Player().fromJSON(player)) : this.players;
         this.map = json.map || this.map;
+        this.bombs = json.bombs || this.bombs;
         return this;
     }
 
@@ -53,7 +55,8 @@ class Team {
             name: this.name,
             state: this.state,
             players: this.players.map(player => player.object()),
-            map: this.map
+            map: this.map,
+            bombs: this.bombs
         }
     }
 }

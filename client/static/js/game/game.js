@@ -53,7 +53,7 @@ class Chat extends router.Component {
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
-       
+
         this.state = {
             map: props?.state?.team?.map || new models.Team().object().map,
             player: props?.state?.player || new models.Player().object(),
@@ -96,7 +96,7 @@ class Game extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
         const avatars = {}
-       
+
         this.state.avatars
         this.state = {
             firstRender: true,
@@ -108,7 +108,7 @@ class Game extends router.Component {
         resp.fromJSON(game);
         this.setState(resp.object());
 
-        
+
 
         if (this.state.team && this.state.team.state === 'playing' && this.state.player) {
             this.init();
@@ -120,8 +120,9 @@ class Game extends router.Component {
     }
 
     onWebSocketMessage(event) {
+        // console.table(event.data);
+        // return;
         const data = JSON.parse(event.data);
-        console.table(data.team?.map);
         if (data.error) {
             this.redirectTo('/');
             return;
@@ -136,42 +137,50 @@ class Game extends router.Component {
         const { type, team, player } = resp;
 
         switch (type) {
-            case "updatePlayers":
-                this.setState({ players: players });
-                break;
+            // case "updatePlayers":
+            //     this.setState({ players: players });
+            //     break;
             case "placeBomb":
                 // Handle bomb placement
-                this.setState({ bombs: [...this.state.bombs, bomb] });
+                this.setState({ team: { ...this.state.team, bombs: team.bombs } });
                 break;
             // Add cases for other message types as needed
             case "bombExploded":
                 // Handle bomb explosion
                 this.setState({
-                    bombs: this.state.bombs.filter(
-                        (b) => b.x !== bomb.x || b.y !== bomb.y
-                    ),
+                    team: {
+                        ...this.state.team,
+                        map: team.map,
+                        bombs: team.bombs
+                    }
                 });
                 break;
-            case "playerEliminated":
-                this.handlePlayerElimination(event.playerId);
-                break;
+            // case "playerEliminated":
+            //     this.handlePlayerElimination(event.playerId);
+            //     break;
             case "gameMapUpdate":
-                this.setState({ team: { ...this.state.team, map: team.map } });
+                this.setState({
+                    team: {
+                        ...this.state.team,
+                        map: team.map,
+                        bombs: team.bombs
+                    }
+                });
                 break;
-            case "gameWaiting":
-                this.setState({ waiting: time, isWaiting: false });
-                break;
-            case "chatMessage":
-                this.setState({ messages: [...this.state.messages, message] });
-                break;
-            case "waitLobby":
-                this.setState({ time: time, playersCount: players });
-                break;
-            case "gameOver":
-                alert(message);
-                this.resetGame();
-                this.router.navigate("/");
-                break;
+            // case "gameWaiting":
+            //     this.setState({ waiting: time, isWaiting: false });
+            //     break;
+            // case "chatMessage":
+            //     this.setState({ messages: [...this.state.messages, message] });
+            //     break;
+            // case "waitLobby":
+            //     this.setState({ time: time, playersCount: players });
+            //     break;
+            // case "gameOver":
+            //     alert(message);
+            //     this.resetGame();
+            //     this.router.navigate("/");
+            //     break;
             default:
                 console.warn("Unknown message type:", type);
         }
@@ -231,15 +240,14 @@ class Game extends router.Component {
         addListener(window, "keydown", this.handleKeyDown);
     }
 
-   
+
 
     update() {
-       const gridmap = document.getElementById('map-grid')
-       console.log(this.state.avatars);
-       if (gridmap) {
-        gridmap.innerHTML = '';
-        gridmap.appendChild(this.mapRander(this.state.team.map, this.state.avatars)); 
-       }
+        const gridmap = document.getElementById('map-grid')
+        if (gridmap) {
+            gridmap.innerHTML = '';
+            gridmap.appendChild(this.mapRander(this.state.team.map, this.state.avatars, this.state.team.bombs));
+        }
     }
 
     gameLoop = () => {
@@ -254,7 +262,8 @@ class Game extends router.Component {
         }
     }
 
-    mapRander(map2d, avatars) {
+    mapRander(map2d, avatars, bombs = []) {
+
         const decor = {
             "0": "",
             "1": "🧱",
@@ -263,7 +272,6 @@ class Game extends router.Component {
         }
         const mapSize = 550;
         const cellSize = mapSize / map2d.length;
-        console.log(map2d, cellSize, decor, avatars);
         return createElement('div', {
             class: 'map-grid',
             id: 'map-grid',
@@ -273,10 +281,20 @@ class Game extends router.Component {
         }, [
             map2d.map((row, rowIndex) => {
                 return row.map((cell, cellIndex) => {
+                    let canPlaceBomb = false
+                    for (let i = 0; i < bombs.length; i++) {
+                        if (bombs[i].position.x === rowIndex && bombs[i].position.y === cellIndex) {
+                            if (!bombs.exploded) {
+                                canPlaceBomb = true;
+                                break;
+                            }
+
+                        }
+                    }
                     return createElement('div', {
                         class: `map-cell ${rowIndex}${cellIndex}`,
 
-                    }, `${cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
+                    }, `${canPlaceBomb ? '💣' : (cell == 100) ? '🔥' : cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
                 })
             })
         ]);
@@ -300,13 +318,25 @@ class Game extends router.Component {
                 break;
             case " ":
                 // Handle other keys as needed
-                // this.ws.send("placeBomb", {});
-                break;
+                let request = {
+                    playerId: this.state.player?.id, // Remplacer par un UUID valide
+                    teamId: this.state.team?.id, // Remplacer par un UUID valide
+                    position: {
+                        x: move.x,
+                        y: move.y
+                    },
+                    message: {
+                        content: ""
+                    },
+                    type: "placeBomb" // Remplacer par une valeur valide pour ReqType
+                };
+                console.log('place bomb');
+                this.ws.send(request);
+                return;
             default:
                 return;
         }
 
-        console.log("Sending move", move);
         let request = {
             playerId: this.state.player?.id, // Remplacer par un UUID valide
             teamId: this.state.team?.id, // Remplacer par un UUID valide
