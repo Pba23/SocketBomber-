@@ -15,6 +15,8 @@ const (
 	MaxPlayers       = 2
 )
 
+var Avatars = []string{"👾", "👻", "🤖", "👹", "☠️", "🕵️‍♀️"}
+
 // Rom represents a ROM file.
 type Team struct {
 	sync.RWMutex

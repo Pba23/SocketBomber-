@@ -205,7 +205,7 @@
     justify-content: center;
     align-items: center; 
     /* Ajoutez cette ligne pour centrer le contenu de chaque cellule */
-    background: var(--color1);
+    background: var(--color5);
 }
 
 .cell{

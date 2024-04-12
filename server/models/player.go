@@ -10,6 +10,8 @@ import (
 type Player struct {
 	sync.RWMutex
 	ID       uuid.UUID `json:"id"`
+	MapId    int       `json:"mapId"`
+	Avatar   string    `json:"avatar"`
 	Nickname string    `json:"nickname"`
 	Position *Position `json:"position"`
 	Team     *Team     `json:"team"`
@@ -23,7 +25,7 @@ func NewPlayer(nickname string, position *Position, team *Team) *Player {
 		Nickname: nickname,
 		Position: position,
 		Team:     team,
-		Conn:    nil,
+		Conn:     nil,
 	}
 }
 

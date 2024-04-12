@@ -15,7 +15,7 @@ import (
 
 var (
 	engine   = models.New[uuid.UUID]()
-	mapSize  = 20
+	mapSize  = 15
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -56,6 +56,8 @@ type response struct {
 	Player struct {
 		ID       uuid.UUID `json:"id"`
 		Nickname string    `json:"nickname"`
+		Avatar   string    `json:"avatar"`
+		MapId    int       `json:"mapId"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -68,6 +70,8 @@ type response struct {
 		Players []struct {
 			ID       uuid.UUID `json:"id"`
 			Nickname string    `json:"nickname"`
+			Avatar   string    `json:"avatar"`
+			MapId    int       `json:"mapId"`
 			Position struct {
 				X int `json:"x"`
 				Y int `json:"y"`
@@ -85,6 +89,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
 	r.Player = struct {
 		ID       uuid.UUID `json:"id"`
 		Nickname string    `json:"nickname"`
+		Avatar   string    `json:"avatar"`
+		MapId    int       `json:"mapId"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -92,6 +98,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
 	}{
 		ID:       p.ID,
 		Nickname: p.Nickname,
+		Avatar:   p.Avatar,
+		MapId:    p.MapId,
 		Position: struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -104,6 +112,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
 	r.Team.Players = make([]struct {
 		ID       uuid.UUID `json:"id"`
 		Nickname string    `json:"nickname"`
+		Avatar   string    `json:"avatar"`
+		MapId    int       `json:"mapId"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -115,6 +125,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
 		r.Team.Players = append(r.Team.Players, struct {
 			ID       uuid.UUID `json:"id"`
 			Nickname string    `json:"nickname"`
+			Avatar   string    `json:"avatar"`
+			MapId    int       `json:"mapId"`
 			Position struct {
 				X int `json:"x"`
 				Y int `json:"y"`
@@ -122,6 +134,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
 		}{
 			ID:       player.ID,
 			Nickname: player.Nickname,
+			Avatar:   player.Avatar,
+			MapId:    player.MapId,
 			Position: struct {
 				X int `json:"x"`
 				Y int `json:"y"`
@@ -153,6 +167,8 @@ func join(w http.ResponseWriter, r *http.Request) {
 	inTeam := false
 	engine.Range(func(key uuid.UUID, value *models.Team) bool {
 		if len(value.Players) < models.MaxPlayers && value.State == models.Waiting {
+			player.MapId = len(value.Players) + 1*2 + 1
+			player.Avatar = models.Avatars[len(value.Players)]
 			player.SetTeam(value)
 			value.AddPlayer(player)
 			inTeam = true
@@ -163,6 +179,8 @@ func join(w http.ResponseWriter, r *http.Request) {
 
 	if !inTeam {
 		team := models.NewTeam(fmt.Sprintf("Team %d", engine.Size()), mapSize)
+		player.MapId = len(team.Players) + 1*2 + 1
+		player.Avatar = models.Avatars[len(team.Players)]
 		player.SetTeam(team)
 		team.AddPlayer(player)
 		engine.Add(team.ID, team)
@@ -252,13 +270,15 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 				team.State = models.Playing
 				team.GameMap.GenerateGameTerrain(len(team.Players))
 				positions := team.GameMap.GenerateStartingAreas(team.Players)
-
 				for id, player := range team.Players {
-					team.GameMap.MovePlayer(*player.Position, positions[id])
+					team.GameMap.MovePlayer(*player.Position, positions[id], player.MapId)
 					player.Position.Update(positions[id].X, positions[id].Y)
-					delete(positions, id)
+					// delete(positions, id)
+					log.Println(player.Avatar)
 					team.UpdatePlayer(player.ID, player)
 				}
+
+				log.Println(team.GameMap)
 
 				for id, player := range team.Players {
 					if player.Conn != nil {
@@ -325,7 +345,7 @@ func game(w http.ResponseWriter, r *http.Request) {
 		if req.Type == Join {
 			player.Conn = conn
 		} else if req.Type == "move" {
-			team.GameMap.MovePlayer(*player.Position, models.Position{X: req.Position.X, Y: req.Position.Y})
+			team.GameMap.MovePlayer(*player.Position, models.Position{X: req.Position.X, Y: req.Position.Y}, player.MapId)
 			player.Position.Update(req.Position.X, req.Position.Y)
 
 			for id, p := range team.Players {

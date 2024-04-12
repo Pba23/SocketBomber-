@@ -105,7 +105,7 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 }
 
 // MovePlayer moves the player to the new position.
-func (m *Map) MovePlayer(oldPos, newPos Position) {
+func (m *Map) MovePlayer(oldPos, newPos Position, id int) {
 	(*m)[oldPos.X][oldPos.Y] = 0
-	(*m)[newPos.X][newPos.Y] = 1
+	(*m)[newPos.X][newPos.Y] = id
 }

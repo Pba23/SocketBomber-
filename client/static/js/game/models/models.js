@@ -1,15 +1,19 @@
 class Player {
-    constructor(id='', nickname='', x=0, y=0) {
+    constructor(id = '', nickname = '', x = 0, y = 0, avatar = '') {
         this.id = id;
         this.nickname = nickname;
         this.position = { x, y };
+        this.avatar = avatar;
+        this.mapId = '';
     }
 
-    fromJSON(json={}) {
+    fromJSON(json = {}) {
         if (json === null) return this;
         this.id = json.id || this.id;
         this.nickname = json.nickname || this.nickname;
         this.position = json.position || this.position;
+        this.avatar = json.avatar || this.avatar;
+        this.mapId = json.mapId || this.mapId;
         return this;
     }
 
@@ -17,13 +21,15 @@ class Player {
         return {
             id: this.id,
             nickname: this.nickname,
-            position: this.position
+            position: this.position,
+            avatar: this.avatar,
+            mapId: this.mapId
         }
     }
 }
 
 class Team {
-    constructor(id='', name='', state='', players=[], map=[]) {
+    constructor(id = '', name = '', state = '', players = [], map = []) {
         this.id = id;
         this.name = name;
         this.state = state;
@@ -31,7 +37,7 @@ class Team {
         this.map = map;
     }
 
-    fromJSON(json={}) {
+    fromJSON(json = {}) {
         if (json === null) return this;
         this.id = json.id || this.id;
         this.name = json.name || this.name;
@@ -53,12 +59,12 @@ class Team {
 }
 
 class Response {
-    constructor({ player={}, team={} } = {}) {
+    constructor({ player = {}, team = {} } = {}) {
         this.player = new Player().fromJSON(player);
         this.team = new Team().fromJSON(team);
     }
 
-    fromJSON(json={}) {
+    fromJSON(json = {}) {
         if (json === null) return this;
         this.team = new Team().fromJSON(json.team || {});
         this.player = new Player().fromJSON(json.player || {});

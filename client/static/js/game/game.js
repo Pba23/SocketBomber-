@@ -53,9 +53,15 @@ class Chat extends router.Component {
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
+        const avatars = {}
+        props.state?.team?.players?.forEach(player => {
+            avatars[player.mapId] = player.avatar;
+        });
+        console.log(avatars);
         this.state = {
             map: props?.state?.team?.map || new models.Team().object().map,
             player: props?.state?.player || new models.Player().object(),
+            avatars: avatars,
         }
     }
     render() {
@@ -81,7 +87,7 @@ class Map extends router.Component {
                                 return createElement('div', {
                                     class: `map-cell ${rowIndex}${cellIndex}`,
 
-                                }, `${decor[cell]}`);
+                                }, `${cell <= 2 ? decor[cell] : this.state.avatars[cell] || ''}`);
                             })
                         })
                     ]),
@@ -141,7 +147,7 @@ class Game extends router.Component {
                 const data = JSON.parse(event.data);
 
                 if (data.error) {
-                   this.redirectTo('/');
+                    this.redirectTo('/');
                     return;
                 }
                 console.log(data);
