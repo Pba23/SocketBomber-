@@ -3,6 +3,49 @@ import models from "./models/models.js";
 const { createElement, addListener } = router;
 
 class Chat extends router.Component {
+    constructor(props, stateManager) {
+        super(props, stateManager);
+        this.state = {
+            messages: [], // Initialize an empty array to store chat messages
+        };
+    }
+
+    componentDidMount() {
+        // Add event listener to handle incoming chat messages
+        this.props.socket.onMessage(this.handleIncomingMessage);
+    }
+
+    componentWillUnmount() {
+        // Clean up by removing the event listener
+        this.props.socket.removeMessageListener(this.handleIncomingMessage);
+    }
+
+    handleIncomingMessage = (message) => {
+        // Update state with the incoming chat message
+        this.setState({ messages: [...this.state.messages, message] });
+    };
+
+    handleSendMessage = (event) => {
+        event.preventDefault()
+        console.log(event)
+        const inputElement = document.querySelector('.new-message');
+        const messageContent = inputElement.value.trim();
+
+        if (messageContent !== '') {
+            console.log("CHAT SOCKET", this.props)
+            const chatMessage = {
+                type: 'chat', // Define the type as 'chat' to indicate a chat message
+                content: messageContent,
+            };
+
+            // Send the chat message to the server via WebSocket
+            this.props.ws.send(chatMessage);
+
+            // Clear the input field after sending the message
+            inputElement.value = '';
+        }
+    };
+
     render() {
         return createElement('div', { class: 'game-chat' }, [
             createElement('div', { class: 'chat-box' }, [
@@ -30,25 +73,37 @@ class Chat extends router.Component {
                 createElement('div', { class: 'chat' }, [
                     createElement('div', { class: 'header' }, [
                         createElement('div', { class: 'title' }, `Chat`),
-                    ]),
-                    createElement('div', { class: 'content' }, [
-                        createElement('div', { class: 'messages' }, [
-                            createElement('div', { class: 'message' }, [
-                                createElement('div', { class: 'message-author' }, 'Author'),
-                                createElement('div', { class: 'message-content' }, 'Message content'),
-                            ]),
+                            createElement('div', { class: 'content' }, [
+                                createElement('div', { class: 'messages' }, [
+                                    this.state.messages.map((message, index) => (
+                                        createElement('div', { key: index, class: 'message' }, [
+                                            createElement('div', { class: 'message-author' }, message.author),
+                                            createElement('div', { class: 'message-content' }, message.content),
+                                        ])
+                                    )),
+                                ]),
                         ]),
                     ]),
                     createElement('div', { class: 'footer' }, [
                         createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
-                        createElement('button', { class: 'send' }, 'Send')
+                        createElement('button', { type: 'button', class: 'send', onClick: this.handleSendMessage.bind(this) }, 'Send'),
                     ]),
-
                 ]),
             ]),
         ]);
     }
 }
+                        // createElement('div', { class: 'messages' }, [
+                        //     createElement('div', { class: 'message' }, [
+                        //         createElement('div', { class: 'message-author' }, 'Author'),
+                        //         createElement('div', { class: 'message-content' }, 'Message content'),
+                        //     ]),
+                        // ]),
+                    // createElement('div', { class: 'footer' }, [
+                    //     createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
+                    //     createElement('button', { class: 'send' }, 'Send')
+                    // ]),
+
 
 class Map extends router.Component {
     constructor(props, stateManager) {
@@ -123,7 +178,8 @@ class Game extends router.Component {
         const data = JSON.parse(event.data);
         console.table(data.team?.map);
         if (data.error) {
-            this.redirectTo('/');
+            console.log(data.error)
+            // this.redirectTo('/');
             return;
         } else if (data.invalid) {
             console.log('Invalid move');
@@ -172,6 +228,16 @@ class Game extends router.Component {
                 this.resetGame();
                 this.router.navigate("/");
                 break;
+            case 'chat':
+                // Handle incoming chat messages
+                const newMessage = {
+                    author: data.author, // Assuming the message contains author's information
+                    content: data.content, // Extract the message content from the data
+                };
+                // Update the state to include the new chat message
+                this.setState({ messages: [...this.state.messages, newMessage] });
+                break;
+                // Add cases for other message types as needed
             default:
                 console.warn("Unknown message type:", type);
         }
@@ -208,6 +274,24 @@ class Game extends router.Component {
 
     }
 
+    handleChatSend = () => {
+        const inputElement = document.querySelector('.new-message');
+        const messageContent = inputElement.value.trim();
+
+        if (messageContent !== '') {
+            const chatMessage = {
+                type: 'chat', // Define the type as 'chat' to indicate a chat message
+                content: messageContent,
+            };
+
+            // Send the chat message to the server via WebSocket
+            this.ws?.send(chatMessage);
+
+            // Clear the input field after sending the message
+            inputElement.value = '';
+        }
+    };
+
     redirectTo = (path, clear = true) => {
         this.removeState();
         window.location.pathname = path;
@@ -235,7 +319,7 @@ class Game extends router.Component {
 
     update() {
        const gridmap = document.getElementById('map-grid')
-       console.log(this.state.avatars);
+    //    console.log(this.state.avatars);
        if (gridmap) {
         gridmap.innerHTML = '';
         gridmap.appendChild(this.mapRander(this.state.team.map, this.state.avatars)); 
@@ -263,7 +347,7 @@ class Game extends router.Component {
         }
         const mapSize = 550;
         const cellSize = mapSize / map2d.length;
-        console.log(map2d, cellSize, decor, avatars);
+        // console.log(map2d, cellSize, decor, avatars);
         return createElement('div', {
             class: 'map-grid',
             id: 'map-grid',
@@ -306,7 +390,7 @@ class Game extends router.Component {
                 return;
         }
 
-        console.log("Sending move", move);
+        // console.log("Sending move", move);
         let request = {
             playerId: this.state.player?.id, // Remplacer par un UUID valide
             teamId: this.state.team?.id, // Remplacer par un UUID valide

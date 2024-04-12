@@ -7,3 +7,4 @@ type Message struct {
 	TeamId   uuid.UUID `json:"teamId"`
 	Content  string    `json:"content"`
 }
+

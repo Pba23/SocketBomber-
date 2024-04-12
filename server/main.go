@@ -80,6 +80,10 @@ type response struct {
 		Map [][]int `json:"map"`
 	} `json:"team"`
 	Type ReqType `json:"type"`
+	Message struct {
+		Author string `json:author`
+		Content string `json:content`
+	}
 }
 
 func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
@@ -213,6 +217,7 @@ const (
 	Move          ReqType = "move"
 	GameMapUpdate ReqType = "gameMapUpdate"
 	Playing       ReqType = "playing"
+	Chat          ReqType = "chat"
 )
 
 func waitingpage(w http.ResponseWriter, r *http.Request) {
@@ -309,7 +314,7 @@ func game(w http.ResponseWriter, r *http.Request) {
 			X int `json:"x"`
 			Y int `json:"y"`
 		} `json:"position"`
-		Messsaage struct {
+		Message struct {
 			Content string `json:"content"`
 		} `json:"message"`
 		Type ReqType `json:"type"`
@@ -343,7 +348,28 @@ func game(w http.ResponseWriter, r *http.Request) {
 			conn.WriteJSON(map[string]string{"error": "Player not found"})
 			return
 		}
-		if req.Type == Join {
+		if req.Type == Chat {
+			fmt.Println("Play chatt")
+
+			// Assuming your chat message has a "content" field
+			content := req.Message.Content
+
+			// Broadcast the chat message to all players in the team
+			for _, p := range team.Players {
+				if p.Conn != nil {
+					resp := new(response)
+					resp.FromTeam(team, p.ID, Chat)
+					resp.Player.ID = player.ID             // Set the sender's ID
+					resp.Player.Nickname = player.Nickname // Set the sender's nickname
+					resp.Player.Avatar = player.Avatar     // Set the sender's avatar
+					resp.Message.Content = content         // Set the chat message content
+					err := p.Conn.WriteJSON(resp)
+					if err != nil {
+						continue
+					}
+				}
+			}
+		} else if req.Type == Join {
 			player.Conn = conn
 		} else if req.Type == Move {
 			newPositon := models.Position{}
