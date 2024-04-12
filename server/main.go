@@ -212,12 +212,14 @@ func join(w http.ResponseWriter, r *http.Request) {
 type ReqType string
 
 const (
-	Join          ReqType = "join"
-	Move          ReqType = "move"
-	GameMapUpdate ReqType = "gameMapUpdate"
-	BombExploded  ReqType = "bombExploded"
-	PlaceBomb     ReqType = "placeBomb"
-	Playing       ReqType = "playing"
+	Join             ReqType = "join"
+	Move             ReqType = "move"
+	GameMapUpdate    ReqType = "gameMapUpdate"
+	BombExploded     ReqType = "bombExploded"
+	PlayerEliminated ReqType = "playerEliminated"
+	PlayerDead       ReqType = "playerDead"
+	PlaceBomb        ReqType = "placeBomb"
+	Playing          ReqType = "playing"
 )
 
 func waitingpage(w http.ResponseWriter, r *http.Request) {
@@ -351,6 +353,9 @@ func game(w http.ResponseWriter, r *http.Request) {
 		if req.Type == Join {
 			player.Conn = conn
 		} else if req.Type == Move {
+			if player.IsDead() {
+				continue
+			}
 			newPositon := models.Position{}
 			newPositon.X = req.Position.X + player.Position.X
 			newPositon.Y = req.Position.Y + player.Position.Y
@@ -372,6 +377,9 @@ func game(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else if req.Type == PlaceBomb {
+			if player.IsDead() {
+				continue
+			}
 			player.Position.Lock()
 
 			ok, id := team.PlaceBomb(player.Position.X, player.Position.Y)
@@ -392,10 +400,35 @@ func game(w http.ResponseWriter, r *http.Request) {
 							for _, v := range deadPlayers {
 								for _, p := range team.Players {
 									if p.MapId == v {
-										p.LifeDown()
-										//
-										//
-										//
+										resp := new(response)
+										resp.FromTeam(team, p.ID, PlayerEliminated)
+										err := p.Conn.WriteJSON(resp)
+										if err != nil {
+											continue
+										}
+										isdead := p.LifeDown()
+										if isdead {
+											resp := new(response)
+											resp.FromTeam(team, p.ID, PlayerDead)
+											err := p.Conn.WriteJSON(resp)
+											if err != nil {
+												continue
+											}
+											// p.Position.Lock()
+											// p.Position.X = 0
+											// p.Position.Y = 0
+											// p.Position.Unlock()
+											// p.Life = 3
+											// team.GameMap.MovePlayer(*p.Position, models.Position{X: 0, Y: 0}, p.MapId)
+											// for _, p := range team.Players {
+											// 	resp := new(response)
+											// 	resp.FromTeam(team, p.ID, GameMapUpdate)
+											// 	err := p.Conn.WriteJSON(resp)
+											// 	if err != nil {
+											// 		continue
+											// 	}
+											// }
+										}
 										team.AddPlayer(p)
 									}
 

@@ -53,3 +53,10 @@ func (p *Player) LifeDown() bool {
 	}
 	return p.Life == 0
 }
+
+// IsDead returns true if the player is dead.
+func (p *Player) IsDead() bool {
+	p.RLock()
+	defer p.RUnlock()
+	return p.Life == 0
+}
