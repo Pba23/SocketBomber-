@@ -29,7 +29,7 @@ class Player {
 }
 
 class Team {
-    constructor(id = '', name = '', state = '', players = [], map = [],bombs = []) {
+    constructor(id = '', name = '', state = '', players = [], map = [], bombs = []) {
         this.id = id;
         this.name = name;
         this.state = state;
@@ -62,10 +62,11 @@ class Team {
 }
 
 class Response {
-    constructor({ player = {}, team = {}, type = '' } = {}) {
+    constructor({ player = {}, team = {}, type = '', value = '' } = {}) {
         this.player = new Player().fromJSON(player);
         this.team = new Team().fromJSON(team);
         this.type = type;
+        this.value = value
     }
 
     fromJSON(json = {}) {
@@ -73,6 +74,7 @@ class Response {
         this.team = new Team().fromJSON(json.team || {});
         this.player = new Player().fromJSON(json.player || {});
         this.type = json.type || this.type;
+        this.value = json.value || this.value
         return this;
     }
 
@@ -80,7 +82,8 @@ class Response {
         return {
             player: this.player.object(),
             team: this.team.object(),
-            type: this.type
+            type: this.type,
+            value: this.value
         }
     }
 }

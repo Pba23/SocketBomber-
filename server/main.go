@@ -50,7 +50,7 @@ func main() {
 
 	mux.HandleFunc("/gamesocket", game)
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatalln(http.ListenAndServe(":8080", mux))
 }
 
 type response struct {
@@ -64,7 +64,8 @@ type response struct {
 			Y int `json:"y"`
 		} `json:"position"`
 	} `json:"player"`
-	Team struct {
+	Value interface{} `json:"value"`
+	Team  struct {
 		ID      uuid.UUID      `json:"id"`
 		Name    string         `json:"name"`
 		State   models.State   `json:"state"`
@@ -430,6 +431,7 @@ func game(w http.ResponseWriter, r *http.Request) {
 										team.UpdatePlayer(p.ID, p)
 										for _, pp := range team.Players {
 											resp := new(response)
+											resp.Value = p.ID
 											resp.FromTeam(team, pp.ID, PlayerEliminated)
 											err := pp.Conn.WriteJSON(resp)
 											if err != nil {
@@ -439,6 +441,7 @@ func game(w http.ResponseWriter, r *http.Request) {
 										if isdead {
 											for _, pp := range team.Players {
 												resp := new(response)
+												resp.Value = p.ID
 												resp.FromTeam(team, pp.ID, PlayerDead)
 												err := pp.Conn.WriteJSON(resp)
 												if err != nil {
