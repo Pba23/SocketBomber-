@@ -400,36 +400,31 @@ func game(w http.ResponseWriter, r *http.Request) {
 							for _, v := range deadPlayers {
 								for _, p := range team.Players {
 									if p.MapId == v {
-										resp := new(response)
-										resp.FromTeam(team, p.ID, PlayerEliminated)
-										err := p.Conn.WriteJSON(resp)
-										if err != nil {
-											continue
-										}
 										isdead := p.LifeDown()
-										if isdead {
+										team.UpdatePlayer(p.ID, p)
+										for _, pp := range team.Players {
 											resp := new(response)
-											resp.FromTeam(team, p.ID, PlayerDead)
-											err := p.Conn.WriteJSON(resp)
+											resp.FromTeam(team, pp.ID, PlayerEliminated)
+											err := pp.Conn.WriteJSON(resp)
 											if err != nil {
 												continue
 											}
-											// p.Position.Lock()
-											// p.Position.X = 0
-											// p.Position.Y = 0
-											// p.Position.Unlock()
-											// p.Life = 3
-											// team.GameMap.MovePlayer(*p.Position, models.Position{X: 0, Y: 0}, p.MapId)
-											// for _, p := range team.Players {
-											// 	resp := new(response)
-											// 	resp.FromTeam(team, p.ID, GameMapUpdate)
-											// 	err := p.Conn.WriteJSON(resp)
-											// 	if err != nil {
-											// 		continue
-											// 	}
-											// }
 										}
-										team.AddPlayer(p)
+										if isdead {
+											for _, pp := range team.Players {
+												resp := new(response)
+												resp.FromTeam(team, pp.ID, PlayerDead)
+												err := pp.Conn.WriteJSON(resp)
+												if err != nil {
+													continue
+												}
+											}
+											team.GameMap.RemovePlayer(*p.Position)
+										} else {
+											team.GameMap.RegeneratePosition(p)
+											team.UpdatePlayer(p.ID, p)
+										}
+										team.UpdatePlayer(p.ID, p)
 									}
 
 								}

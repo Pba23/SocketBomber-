@@ -155,9 +155,9 @@ class Game extends router.Component {
                     }
                 });
                 break;
-            // case "playerEliminated":
-            //     this.handlePlayerElimination(event.playerId);
-            //     break;
+            case "playerEliminated":
+                this.handlePlayerElimination(player);
+                break;
             case "gameMapUpdate":
                 this.setState({
                     team: {
@@ -186,6 +186,44 @@ class Game extends router.Component {
         }
     }
 
+    handlePlayerElimination(player) {
+
+        if ((player && player.id !== undefined && this.state?.player?.id !== undefined) && player.id === this.state.player.id) {
+            // Create a new notification
+            let notification = document.createElement('div');
+            notification.innerText = "You have been eliminated!";
+            notification.style.position = "fixed";
+            notification.style.zIndex = "1000";
+            notification.style.left = "50%";
+            notification.style.top = "50%";
+            notification.style.transform = "translate(-50%, -50%)";
+            notification.style.backgroundColor = "red";
+            notification.style.color = "white";
+            notification.style.padding = "10px";
+            document.body.appendChild(notification);
+
+            // Remove the notification after 2 seconds
+            const out = setTimeout(() => {
+                document.body.removeChild(notification);
+                clearTimeout(out);
+            }, 2000);
+        } else {
+            console.log('Player eliminated:', player.nickname);
+            // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+        }
+        this.setState({
+            team: {
+                ...this.state.team,
+                players: this.state.team.players.filter(p => {
+                    if (p.id === player.id) {
+                        p = player;
+                    }
+                    return p;
+                })
+
+            }
+        });
+    }
 
     init() {
         if (!this.state.team || !this.state.player) {

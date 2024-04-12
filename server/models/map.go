@@ -108,6 +108,14 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 	return playerPositions
 }
 
+// RegeneratePosition regenerates safe positions for single player.
+func (m *Map) RegeneratePosition(p *Player) Position {
+	Players := map[uuid.UUID]*Player{}
+	Players[p.ID] = p
+	playerPositions := m.GenerateStartingAreas(Players)
+	return playerPositions[p.ID]
+}
+
 // MovePlayer moves the player to the new position.
 func (m *Map) MovePlayer(oldPos, newPos Position, id int) {
 	(*m)[oldPos.X][oldPos.Y] = 0
@@ -128,4 +136,9 @@ func (m *Map) CanMove(pos Position, old Position) bool {
 		return (*m)[pos.X][pos.Y] == 0
 	}
 	return false
+}
+
+// RemovePlayer removes the player from the map.
+func (m *Map) RemovePlayer(pos Position) {
+	(*m)[pos.X][pos.Y] = 0
 }
