@@ -7,35 +7,42 @@ class Chat extends router.Component {
         super(props, stateManager);
         this.state = {
             messages: [], // Initialize an empty array to store chat messages
+            newMessage: ""
         };
     }
 
     componentDidMount() {
         // Add event listener to handle incoming chat messages
-        this.props.socket.onMessage(this.handleIncomingMessage);
+        this.props.ws.onMessage(this.handleIncomingMessage);
     }
 
     componentWillUnmount() {
         // Clean up by removing the event listener
-        this.props.socket.removeMessageListener(this.handleIncomingMessage);
+        this.props.ws.removeMessageListener(this.handleIncomingMessage);
     }
 
     handleIncomingMessage = (message) => {
         // Update state with the incoming chat message
         this.setState({ messages: [...this.state.messages, message] });
     };
-
+    
+    handleInputChange(event) {
+        this.setState({ newMessage: event.target.value });
+    }
+    
     handleSendMessage = (event) => {
         event.preventDefault()
-        console.log(event)
         const inputElement = document.querySelector('.new-message');
         const messageContent = inputElement.value.trim();
 
         if (messageContent !== '') {
-            console.log("CHAT SOCKET", this.props)
             const chatMessage = {
-                type: 'chat', // Define the type as 'chat' to indicate a chat message
-                content: messageContent,
+                type: 'chat',
+                teamId: this.props.state.team.id,
+                playerId: this.props.state.player.id,
+                message: {
+                    content: messageContent
+                }
             };
 
             // Send the chat message to the server via WebSocket
@@ -55,37 +62,37 @@ class Chat extends router.Component {
                     ]),
                     createElement('div', { class: 'content' }, [
                         createElement('div', { class: 'players-list' },
-                            // this.state.players.map(player => {
-                            //     return createElement('div', { class: 'player' }, [
-                            //         createElement('img', { src: player.avatar, alt: player.nickname }),
-                            //         createElement('div', { class: 'player-name' }, player.nickname),
-                            //         createElement('div', { class: 'player-status' }, player.status),
-                            //         createElement('div', { class: 'player-life' },
-                            //             [true, true, false].map((life, index) => {
-                            //                 return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
-                            //             })
-                            //         ),
-                            //     ]);
-                            // })
+                            this.props.state.team.players.map(player => {
+                                return createElement('div', { class: 'player' }, [
+                                    createElement('img', { src: player.avatar, alt: player.nickname }),
+                                    createElement('div', { class: 'player-name' }, player.nickname),
+                                    createElement('div', { class: 'player-status' }, player.status),
+                                    createElement('div', { class: 'player-life' },
+                                        [true, true, false].map((life, index) => {
+                                            return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
+                                        })
+                                    ),
+                                ]);
+                            })
                         )
                     ]),
                 ]),
                 createElement('div', { class: 'chat' }, [
                     createElement('div', { class: 'header' }, [
                         createElement('div', { class: 'title' }, `Chat`),
-                            createElement('div', { class: 'content' }, [
-                                createElement('div', { class: 'messages' }, [
-                                    this.state.messages.map((message, index) => (
-                                        createElement('div', { key: index, class: 'message' }, [
-                                            createElement('div', { class: 'message-author' }, message.author),
-                                            createElement('div', { class: 'message-content' }, message.content),
-                                        ])
-                                    )),
-                                ]),
+                        createElement('div', { class: 'content' }, [
+                            createElement('div', { class: 'messages' }, [
+                                this.props.state.messages.map((message, index) => (
+                                    createElement('div', { key: index, class: 'message' }, [
+                                        createElement('div', { class: 'message-author' }, message.Author),
+                                        createElement('div', { class: 'message-content' }, message.Content),
+                                    ])
+                                )),
+                            ]),
                         ]),
                     ]),
                     createElement('div', { class: 'footer' }, [
-                        createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
+                        createElement('input', { class: 'new-message', value: this.state.newMessage, onInput: this.handleInputChange.bind(this), type: 'text', placeholder: 'Type a message...' }),
                         createElement('button', { type: 'button', class: 'send', onClick: this.handleSendMessage.bind(this) }, 'Send'),
                     ]),
                 ]),
@@ -93,22 +100,22 @@ class Chat extends router.Component {
         ]);
     }
 }
-                        // createElement('div', { class: 'messages' }, [
-                        //     createElement('div', { class: 'message' }, [
-                        //         createElement('div', { class: 'message-author' }, 'Author'),
-                        //         createElement('div', { class: 'message-content' }, 'Message content'),
-                        //     ]),
-                        // ]),
-                    // createElement('div', { class: 'footer' }, [
-                    //     createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
-                    //     createElement('button', { class: 'send' }, 'Send')
-                    // ]),
+// createElement('div', { class: 'messages' }, [
+//     createElement('div', { class: 'message' }, [
+//         createElement('div', { class: 'message-author' }, 'Author'),
+//         createElement('div', { class: 'message-content' }, 'Message content'),
+//     ]),
+// ]),
+// createElement('div', { class: 'footer' }, [
+//     createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
+//     createElement('button', { class: 'send' }, 'Send')
+// ]),
 
 
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
-       
+
         this.state = {
             map: props?.state?.team?.map || new models.Team().object().map,
             player: props?.state?.player || new models.Player().object(),
@@ -151,11 +158,12 @@ class Game extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
         const avatars = {}
-       
+
         this.state.avatars
         this.state = {
             firstRender: true,
             avatars: avatars,
+            messages: [],
         }
         const game = JSON.parse(localStorage.getItem('game')) || {};
 
@@ -163,7 +171,7 @@ class Game extends router.Component {
         resp.fromJSON(game);
         this.setState(resp.object());
 
-        
+
 
         if (this.state.team && this.state.team.state === 'playing' && this.state.player) {
             this.init();
@@ -175,11 +183,11 @@ class Game extends router.Component {
     }
 
     onWebSocketMessage(event) {
+        // console.table(event.data);
+        // return;
         const data = JSON.parse(event.data);
-        console.table(data.team?.map);
         if (data.error) {
-            console.log(data.error)
-            // this.redirectTo('/');
+            this.redirectTo('/');
             return;
         } else if (data.invalid) {
             console.log('Invalid move');
@@ -192,57 +200,110 @@ class Game extends router.Component {
         const { type, team, player } = resp;
 
         switch (type) {
-            case "updatePlayers":
-                this.setState({ players: players });
-                break;
+            // case "updatePlayers":
+            //     this.setState({ players: players });
+            //     break;
             case "placeBomb":
                 // Handle bomb placement
-                this.setState({ bombs: [...this.state.bombs, bomb] });
+                this.setState({ team: { ...this.state.team, bombs: team.bombs } });
                 break;
             // Add cases for other message types as needed
             case "bombExploded":
                 // Handle bomb explosion
                 this.setState({
-                    bombs: this.state.bombs.filter(
-                        (b) => b.x !== bomb.x || b.y !== bomb.y
-                    ),
+                    team: {
+                        ...this.state.team,
+                        map: team.map,
+                        bombs: team.bombs
+                    }
                 });
                 break;
             case "playerEliminated":
-                this.handlePlayerElimination(event.playerId);
+                this.handlePlayerElimination(player);
                 break;
             case "gameMapUpdate":
-                this.setState({ team: { ...this.state.team, map: team.map } });
-                break;
-            case "gameWaiting":
-                this.setState({ waiting: time, isWaiting: false });
-                break;
-            case "chatMessage":
-                this.setState({ messages: [...this.state.messages, message] });
-                break;
-            case "waitLobby":
-                this.setState({ time: time, playersCount: players });
-                break;
-            case "gameOver":
-                alert(message);
-                this.resetGame();
-                this.router.navigate("/");
+                this.setState({
+                    team: {
+                        ...this.state.team,
+                        map: team.map,
+                        bombs: team.bombs
+                    }
+                });
                 break;
             case 'chat':
                 // Handle incoming chat messages
                 const newMessage = {
-                    author: data.author, // Assuming the message contains author's information
-                    content: data.content, // Extract the message content from the data
+                    Author: data.Message.Author, // Assuming the message contains author's information
+                    Content: data.Message.Content, // Extract the message content from the data
                 };
                 // Update the state to include the new chat message
-                this.setState({ messages: [...this.state.messages, newMessage] });
+                this.setState({ 
+                    messages: [
+                        ...this.state.messages, 
+                        newMessage
+                    ]
+                    
+                });
+                this.handleNewMessage(newMessage)
                 break;
-                // Add cases for other message types as needed
+            // Add cases for other message types as needed
+            // case "gameWaiting":
+            //     this.setState({ waiting: time, isWaiting: false });
+            //     break;
+            // case "chatMessage":
+            //     this.setState({ messages: [...this.state.messages, message] });
+            //     break;
+            // case "waitLobby":
+            //     this.setState({ time: time, playersCount: players });
+            //     break;
+            // case "gameOver":
+            //     alert(message);
+            //     this.resetGame();
+            //     this.router.navigate("/");
+            //     break;
             default:
                 console.warn("Unknown message type:", type);
         }
     }
 
+    handlePlayerElimination(player) {
+
+        if ((player && player.id !== undefined && this.state?.player?.id !== undefined) && player.id === this.state.player.id) {
+            // Create a new notification
+            let notification = document.createElement('div');
+            notification.innerText = "You have been eliminated!";
+            notification.style.position = "fixed";
+            notification.style.zIndex = "1000";
+            notification.style.left = "50%";
+            notification.style.top = "50%";
+            notification.style.transform = "translate(-50%, -50%)";
+            notification.style.backgroundColor = "red";
+            notification.style.color = "white";
+            notification.style.padding = "10px";
+            document.body.appendChild(notification);
+
+            // Remove the notification after 2 seconds
+            const out = setTimeout(() => {
+                document.body.removeChild(notification);
+                clearTimeout(out);
+            }, 2000);
+        } else {
+            console.log('Player eliminated:', player.nickname);
+            // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+        }
+        this.setState({
+            team: {
+                ...this.state.team,
+                players: this.state.team.players.filter(p => {
+                    if (p.id === player.id) {
+                        p = player;
+                    }
+                    return p;
+                })
+
+            }
+        });
+    }
 
     init() {
         if (!this.state.team || !this.state.player) {
@@ -274,7 +335,7 @@ class Game extends router.Component {
 
     }
 
-    handleChatSend = () => {
+    handleChatSend = (message) => {
         const inputElement = document.querySelector('.new-message');
         const messageContent = inputElement.value.trim();
 
@@ -290,6 +351,16 @@ class Game extends router.Component {
             // Clear the input field after sending the message
             inputElement.value = '';
         }
+    };
+
+    handleNewMessage = (message) => {
+        const container = document.querySelector('.messages');
+
+        container.appendChild(createElement('div', { class: 'message' }, [
+            createElement('div', { class: 'message-author' }, message.Author),
+            createElement('div', { class: 'message-content' }, message.Content),
+        ]))
+
     };
 
     redirectTo = (path, clear = true) => {
@@ -315,15 +386,14 @@ class Game extends router.Component {
         addListener(window, "keydown", this.handleKeyDown);
     }
 
-   
+
 
     update() {
-       const gridmap = document.getElementById('map-grid')
-    //    console.log(this.state.avatars);
-       if (gridmap) {
-        gridmap.innerHTML = '';
-        gridmap.appendChild(this.mapRander(this.state.team.map, this.state.avatars)); 
-       }
+        const gridmap = document.getElementById('map-grid')
+        if (gridmap) {
+            gridmap.innerHTML = '';
+            gridmap.appendChild(this.mapRander(this.state.team.map, this.state.avatars, this.state.team.bombs));
+        }
     }
 
     gameLoop = () => {
@@ -338,7 +408,8 @@ class Game extends router.Component {
         }
     }
 
-    mapRander(map2d, avatars) {
+    mapRander(map2d, avatars, bombs = []) {
+
         const decor = {
             "0": "",
             "1": "🧱",
@@ -347,7 +418,6 @@ class Game extends router.Component {
         }
         const mapSize = 550;
         const cellSize = mapSize / map2d.length;
-        // console.log(map2d, cellSize, decor, avatars);
         return createElement('div', {
             class: 'map-grid',
             id: 'map-grid',
@@ -357,10 +427,20 @@ class Game extends router.Component {
         }, [
             map2d.map((row, rowIndex) => {
                 return row.map((cell, cellIndex) => {
+                    let canPlaceBomb = false
+                    for (let i = 0; i < bombs.length; i++) {
+                        if (bombs[i].position.x === rowIndex && bombs[i].position.y === cellIndex) {
+                            if (!bombs.exploded) {
+                                canPlaceBomb = true;
+                                break;
+                            }
+
+                        }
+                    }
                     return createElement('div', {
                         class: `map-cell ${rowIndex}${cellIndex}`,
 
-                    }, `${cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
+                    }, `${canPlaceBomb ? '💣' : (cell == 100) ? '🔥' : cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
                 })
             })
         ]);
@@ -384,13 +464,25 @@ class Game extends router.Component {
                 break;
             case " ":
                 // Handle other keys as needed
-                // this.ws.send("placeBomb", {});
-                break;
+                let request = {
+                    playerId: this.state.player?.id, // Remplacer par un UUID valide
+                    teamId: this.state.team?.id, // Remplacer par un UUID valide
+                    position: {
+                        x: move.x,
+                        y: move.y
+                    },
+                    message: {
+                        content: ""
+                    },
+                    type: "placeBomb" // Remplacer par une valeur valide pour ReqType
+                };
+                // console.log('place bomb');
+                this.ws.send(request);
+                return;
             default:
                 return;
         }
 
-        // console.log("Sending move", move);
         let request = {
             playerId: this.state.player?.id, // Remplacer par un UUID valide
             teamId: this.state.team?.id, // Remplacer par un UUID valide
@@ -418,7 +510,7 @@ class Game extends router.Component {
     }
 
     render() {
-        console.table(this.state.team.map);
+        // console.log(this.ws.send)
         return createElement('div', { class: 'container' }, [
             new Map(this, this.stateManager).render(),
             new Chat(this, this.stateManager).render(),
@@ -435,6 +527,7 @@ class Socket {
     }
 
     send(data) {
+        // console.log(data, this.ws)
         this.ws.send(JSON.stringify(data));
     }
 

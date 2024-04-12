@@ -59,14 +59,16 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 	playerPositions := map[uuid.UUID]Position{}
 
 	// Find all 'empty' cells
-	emptyCells := []Position{}
+	emptyCells := []*Position{}
 	for x := range *m {
 		for y := range (*m)[x] {
 			if (*m)[x][y] == 0 {
 				// Check if the cell has an 'empty' neighbor on both x and y axis
 				if (x > 0 && (*m)[x-1][y] == 0) || (x < len(*m)-1 && (*m)[x+1][y] == 0) {
 					if (y > 0 && (*m)[x][y-1] == 0) || (y < len(*m)-1 && (*m)[x][y+1] == 0) {
-						emptyCells = append(emptyCells, Position{x, y})
+						p := &Position{}
+						p.Update(x, y)
+						emptyCells = append(emptyCells, p)
 					}
 				}
 			}
@@ -75,7 +77,9 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 
 	// Sort the 'empty' cells by their distance to the center of the map
 	sort.Slice(emptyCells, func(i, j int) bool {
-		center := Position{len(*m) / 2, len(*m) / 2}
+		p := &Position{}
+		p.Update(len(*m)/2, len(*m)/2)
+		center := p
 		distI := math.Sqrt(math.Pow(float64(emptyCells[i].X-center.X), 2) + math.Pow(float64(emptyCells[i].Y-center.Y), 2))
 		distJ := math.Sqrt(math.Pow(float64(emptyCells[j].X-center.X), 2) + math.Pow(float64(emptyCells[j].Y-center.Y), 2))
 		return distI < distJ
@@ -93,7 +97,7 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 				}
 			}
 			if farEnough {
-				playerPositions[p] = pos
+				playerPositions[p] = *pos
 				// Remove the assigned position from the list of empty cells
 				emptyCells = append(emptyCells[:i], emptyCells[i+1:]...)
 				break
@@ -102,6 +106,14 @@ func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID
 	}
 
 	return playerPositions
+}
+
+// RegeneratePosition regenerates safe positions for single player.
+func (m *Map) RegeneratePosition(p *Player) Position {
+	Players := map[uuid.UUID]*Player{}
+	Players[p.ID] = p
+	playerPositions := m.GenerateStartingAreas(Players)
+	return playerPositions[p.ID]
 }
 
 // MovePlayer moves the player to the new position.
@@ -124,4 +136,9 @@ func (m *Map) CanMove(pos Position, old Position) bool {
 		return (*m)[pos.X][pos.Y] == 0
 	}
 	return false
+}
+
+// RemovePlayer removes the player from the map.
+func (m *Map) RemovePlayer(pos Position) {
+	(*m)[pos.X][pos.Y] = 0
 }
