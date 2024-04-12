@@ -340,7 +340,6 @@ func game(w http.ResponseWriter, r *http.Request) {
 	for {
 		var req request
 		err := conn.ReadJSON(&req)
-		fmt.Println("access game", err)
 		if err != nil {
 			conn.WriteJSON(map[string]string{"error": err.Error()})
 			return
@@ -361,7 +360,6 @@ func game(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if req.Type == Chat {
-			fmt.Println("Play chatt")
 			// Assuming your chat message has a "content" field
 			content := req.Message.Content
 			author := player.Nickname

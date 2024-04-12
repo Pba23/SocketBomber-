@@ -1,6 +1,6 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
-const { createElement, addListener } = router;
+const { createElement, addListener, removeListeners } = router;
 
 class Chat extends router.Component {
     constructor(props, stateManager) {
@@ -27,10 +27,12 @@ class Chat extends router.Component {
     };
     
     handleInputChange(event) {
+        this.props.disableControls()
         this.setState({ newMessage: event.target.value });
     }
     
     handleSendMessage = (event) => {
+        this.props.activateControls()
         event.preventDefault()
         const inputElement = document.querySelector('.new-message');
         const messageContent = inputElement.value.trim();
@@ -92,7 +94,7 @@ class Chat extends router.Component {
                         ]),
                     ]),
                     createElement('div', { class: 'footer' }, [
-                        createElement('input', { class: 'new-message', value: this.state.newMessage, onInput: this.handleInputChange.bind(this), type: 'text', placeholder: 'Type a message...' }),
+                        createElement('input', { class: 'new-message', value: this.state.newMessage, onInput: this.handleInputChange.bind(this), onFocus: this.props.handleChatInputFocus, onBlur: this.props.handleChatInputBlur,type: 'text', placeholder: 'Type a message...' }),
                         createElement('button', { type: 'button', class: 'send', onClick: this.handleSendMessage.bind(this) }, 'Send'),
                     ]),
                 ]),
@@ -164,6 +166,7 @@ class Game extends router.Component {
             firstRender: true,
             avatars: avatars,
             messages: [],
+            isChatInputFocused: false,
         }
         const game = JSON.parse(localStorage.getItem('game')) || {};
 
@@ -361,6 +364,16 @@ class Game extends router.Component {
             createElement('div', { class: 'message-content' }, message.Content),
         ]))
 
+    };
+
+    handleChatInputFocus = () => {
+        this.setState({ isChatInputFocused: true });
+        this.disableControls(); // Disable game controls
+    };
+
+    handleChatInputBlur = () => {
+        this.setState({ isChatInputFocused: false });
+        this.activateControls(); // Enable game controls
     };
 
     redirectTo = (path, clear = true) => {
