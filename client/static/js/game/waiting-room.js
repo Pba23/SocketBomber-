@@ -1,7 +1,7 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
 
-const { createElement } = router;
+const { createElement, appendChildren } = router;
 
 class WaitingRoom extends router.Component {
     request = {
@@ -27,7 +27,7 @@ class WaitingRoom extends router.Component {
             this.init();
         } else if (this.state.team && this.state.team.state === 'playing') {
             this.redirectTo('/game');
-        } else if (!this.state.team || !this.state.player) {
+        } else if (!this.state.team.id || !this.state.player.id) {
             this.removeState();
             this.redirectTo('/');
         }
@@ -51,15 +51,20 @@ class WaitingRoom extends router.Component {
                 const resp = new models.Response();
                 resp.fromJSON(data);
                 if (resp.player.id === this.state.player.id && resp.team.id === this.state.team.id) {
-                    if (!this.state.firstRender) {
-                        this.setState(resp.object());
-                        this.setState({ firstRender: true });
-                        this.redirectTo('/waiting-room');
-                    } else {
-                        this.setState(resp.object());
-                        this.setState({ firstRender: false });
-                    }
+                    this.setState(resp.object());
+                    const ul = document.querySelector('.players ul')
+                    ul.innerHTML = '';
+                    resp.team.players.forEach(player => {
+                        if (player.id !== this.state.player.id) {
+                            const li = createElement('li', { class: 'player' }, [
+                                createElement('img', { class: 'player-avatar', src: player.avatar }),
+                                createElement('span', { class: 'player-name' }, player.nickname),
+                            ]);
+                            ul.appendChild(li);
+                        }
+                    });
                 }
+                console.log(resp.team.state);
                 if (resp.team.state === 'playing') {
                     this.redirectTo('/game');
                 }
@@ -67,8 +72,8 @@ class WaitingRoom extends router.Component {
         }
     }
 
-    redirectTo = (path, clear = true) => {
-        this.props.router.navigate(path, clear);
+    redirectTo = (path) => {
+        window.location.href = path;
     }
 
     setState(newState, callback) {
@@ -103,7 +108,7 @@ class WaitingRoom extends router.Component {
                 ]),
                 createElement('span', { class: 'players-header' }, [
                     createElement('h2', { class: 'player-name' }, `Nickname: ${this.state.player ? this.state.player.nickname : ''}`),
-                    createElement('div', {class:'waiting'}, [
+                    createElement('div', { class: 'waiting' }, [
                         createElement('h3', { class: 'players-header-title' }, 'waiting for players'),
                         createElement('i', { class: 'bx bx-loader bx-spin' })
                     ])

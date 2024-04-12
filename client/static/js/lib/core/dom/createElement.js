@@ -15,13 +15,13 @@ function createElement(tagName, attributes = {}, children = [], condition = true
             element.addEventListener(eventType, attributes[key]);
         } else {
             // It's a regular attribute
-                element.setAttribute(key, attributes[key]);
+            element.setAttribute(key, attributes[key]);
             if (element.tagName === 'INPUT' && key === 'checked' && !attributes[key]) {
                 // Special case for input elements
                 element.removeAttribute('checked');
-            }         
+            }
 
-            if (element.tagName ==="BUTTON" && key === 'disabled' && attributes[key]) {
+            if (element.tagName === "BUTTON" && key === 'disabled' && attributes[key]) {
                 // Special case for button elements
                 element.removeAttribute('disabled');
             }

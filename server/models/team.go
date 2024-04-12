@@ -12,7 +12,7 @@ const (
 	Waiting    State = "waiting"
 	Playing    State = "playing"
 	Finished   State = "finished"
-	MaxPlayers       = 4
+	MaxPlayers       = 2
 )
 
 // Rom represents a ROM file.

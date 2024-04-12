@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"sort"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Map [][]int
@@ -53,8 +55,8 @@ func (m *Map) GenerateGameTerrain(numPlayers int) *Map {
 	return m
 }
 
-func (m *Map) GenerateStartingAreas(numPlayers int) []Position {
-	playerPositions := []Position{}
+func (m *Map) GenerateStartingAreas(Players map[uuid.UUID]*Player) map[uuid.UUID]Position {
+	playerPositions := map[uuid.UUID]Position{}
 
 	// Find all 'empty' cells
 	emptyCells := []Position{}
@@ -80,7 +82,7 @@ func (m *Map) GenerateStartingAreas(numPlayers int) []Position {
 	})
 
 	// Assign a starting position to each player
-	for p := 0; p < numPlayers; p++ {
+	for p := range Players {
 		for i, pos := range emptyCells {
 			// Check if the position is far enough from all other player positions
 			farEnough := true
@@ -91,7 +93,7 @@ func (m *Map) GenerateStartingAreas(numPlayers int) []Position {
 				}
 			}
 			if farEnough {
-				playerPositions = append(playerPositions, pos)
+				playerPositions[p] = pos
 				// Remove the assigned position from the list of empty cells
 				emptyCells = append(emptyCells[:i], emptyCells[i+1:]...)
 				break

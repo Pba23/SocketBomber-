@@ -15,7 +15,7 @@ import (
 
 var (
 	engine   = models.New[uuid.UUID]()
-	mapSize  = 10
+	mapSize  = 20
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -251,11 +251,12 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 			if len(team.Players) == models.MaxPlayers {
 				team.State = models.Playing
 				team.GameMap.GenerateGameTerrain(len(team.Players))
-				positions := team.GameMap.GenerateStartingAreas(len(team.Players))
-				for _, player := range team.Players {
-					team.GameMap.MovePlayer(*player.Position, positions[0])
-					player.Position.Update(positions[0].X, positions[0].Y)
-					positions = positions[1:]
+				positions := team.GameMap.GenerateStartingAreas(team.Players)
+
+				for id, player := range team.Players {
+					team.GameMap.MovePlayer(*player.Position, positions[id])
+					player.Position.Update(positions[id].X, positions[id].Y)
+					delete(positions, id)
 					team.UpdatePlayer(player.ID, player)
 				}
 

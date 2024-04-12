@@ -19,7 +19,7 @@ class Home extends router.Component {
     }
 
     redirectTo = (path) => {
-        this.props.router.navigate(path);
+        window.location.pathname = path;
     }
 
     setState(newState) {

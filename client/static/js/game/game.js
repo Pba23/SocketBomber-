@@ -57,18 +57,16 @@ class Map extends router.Component {
             map: props?.state?.team?.map || new models.Team().object().map,
             player: props?.state?.player || new models.Player().object(),
         }
-
-        for (let i = 0; i < 15; i++) {
-            this.state.map[i] = [];
-            for (let j = 0; j < 15; j++) {
-                this.state.map[i][j] = 'empty';
-            }
-        }
     }
     render() {
         const mapSize = 550; // Taille de la carte en pixels
-        const cellSize = mapSize/this.state.map.length; // Taille de chaque cellule
-    
+        const cellSize = mapSize / this.state.map.length; // Taille de chaque cellule
+        const decor = {
+            "0": "",
+            "1": "🧱",
+            "-1": "🪨",
+            "2": "💣"
+        }
         return createElement('div', { class: 'game-map' }, [
             createElement('div', { class: 'map-box' }, [
                 createElement('div', { class: 'map' }, [
@@ -82,8 +80,8 @@ class Map extends router.Component {
                             return row.map((cell, cellIndex) => {
                                 return createElement('div', {
                                     class: `map-cell ${rowIndex}${cellIndex}`,
-                                   
-                                }, `${rowIndex}${cellIndex}`);
+
+                                }, `${decor[cell]}`);
                             })
                         })
                     ]),
@@ -95,53 +93,83 @@ class Map extends router.Component {
 
 
 class Game extends router.Component {
+    request = {
+        type: 'join',
+        teamId: '',
+        playerId: '',
+        position: {
+            x: 0,
+            y: 0
+        },
+        message: {
+            content: ''
+        }
+    }
     constructor(props, stateManager) {
         super(props, stateManager);
+        this.state = {
+            firstRender: true,
+        }
+        const game = JSON.parse(localStorage.getItem('game')) || {};
 
-        // const game = JSON.parse(localStorage.getItem('game'));
+        const resp = new models.Response()
+        resp.fromJSON(game);
+        this.setState(resp.object());
 
-        // const resp = new models.Response()
-        // resp.fromJSON(game || {});
-
-
-        // this.state = resp.object()
+        if (this.state.team && this.state.team.state === 'playing' && this.state.player) {
+            this.init();
+        } else if (!this.state.team.id || !this.state.player.id) {
+            this.removeState();
+            this.redirectTo('/');
+        }
     }
 
-    // init() {
-    //     // if (!this.state.team || !this.state.player) {
-    //     //     console.log('Team is not defined yet');
-    //     //     return;
-    //     // }
-    //     const ws = new WebSocket(`ws://${window.location.host}/gamesocket`);
-    //     ws.onopen = () => {
-    //         ws.send(JSON.stringify({ type: 'join', teamId: this.state.team.id, playerid: this.state.player.id }));
-    //         ws.onmessage = (event) => {
-    //             const data = JSON.parse(event.data);
-    //             if (data.error) {
-    //                 this.removeState();
-    //                 this.redirectTo('/');
-    //                 return;
-    //             }
-    //             const resp = new models.Response();
-    //             resp.fromJSON(data);
-    //             if (resp.player.id === this.state.player.id && resp.team.id === this.state.team.id) {
-    //                 if (!this.state.firstRender) {
-    //                     this.setState(resp.object());
-    //                     this.setState({ firstRender: true });
-    //                     this.redirectTo('/waiting-room');
-    //                 } else {
-    //                     this.setState(resp.object());
-    //                     this.setState({ firstRender: false });
-    //                 }
-    //             }
-    //             if (resp.team.state === 'playing') {
-    //                 this.redirectTo('/game');
-    //             }
-    //         }
-    //     }
-    // }
+    init() {
+        if (!this.state.team || !this.state.player) {
+            console.log('Team is not defined yet');
+            return;
+        }
+        this.request = {
+            type: 'join',
+            teamId: this.state.team.id,
+            playerId: this.state.player.id,
+        }
+        const ws = new WebSocket(`ws://${window.location.host}/gamesocket`);
+        ws.onopen = () => {
+            ws.send(JSON.stringify(this.request));
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.error) {
+                   this.redirectTo('/');
+                    return;
+                }
+                console.log(data);
+            }
+        }
+    }
+
+    redirectTo = (path, clear = true) => {
+        this.props.router.navigate(path, clear);
+    }
+
+    setState(newState, callback) {
+        this.state = { ...this.state, ...newState }
+        localStorage.setItem('game', JSON.stringify(this.state));
+        this.request = {
+            teamId: this.state.team.id,
+            playerId: this.state.player.id,
+            position: this.state.player.position,
+        }
+        callback && callback();
+    }
+
+    removeState() {
+        localStorage.removeItem('game');
+    }
 
     render() {
+        console.table(this.state.team.map);
         return createElement('div', { class: 'container' }, [
             new Map(this, this.stateManager).render(),
             new Chat(this, this.stateManager).render(),
