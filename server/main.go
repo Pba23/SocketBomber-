@@ -79,12 +79,14 @@ type response struct {
 		} `json:"players"`
 		Map [][]int `json:"map"`
 	} `json:"team"`
+	Type ReqType `json:"type"`
 }
 
-func (r *response) FromTeam(team *models.Team, id uuid.UUID) {
+func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 	r.Team.ID = team.ID
 	r.Team.Name = team.Name
 	r.Team.State = team.State
+	r.Type = t
 	p := team.GetPlayer(id)
 	r.Player = struct {
 		ID       uuid.UUID `json:"id"`
@@ -196,7 +198,7 @@ func join(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	resp := new(response)
-	resp.FromTeam(player.Team, player.ID)
+	resp.FromTeam(player.Team, player.ID, Join)
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.Println("Failed to encode response: ", err)
@@ -207,7 +209,10 @@ func join(w http.ResponseWriter, r *http.Request) {
 type ReqType string
 
 const (
-	Join ReqType = "join"
+	Join          ReqType = "join"
+	Move          ReqType = "move"
+	GameMapUpdate ReqType = "gameMapUpdate"
+	Playing       ReqType = "playing"
 )
 
 func waitingpage(w http.ResponseWriter, r *http.Request) {
@@ -257,7 +262,7 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 			for id, player := range team.Players {
 				if player.Conn != nil {
 					resp := new(response)
-					resp.FromTeam(team, id)
+					resp.FromTeam(team, id, Join)
 					err := player.Conn.WriteJSON(resp)
 					if err != nil {
 						conn.Close()
@@ -273,17 +278,14 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 				for id, player := range team.Players {
 					team.GameMap.MovePlayer(*player.Position, positions[id], player.MapId)
 					player.Position.Update(positions[id].X, positions[id].Y)
-					// delete(positions, id)
-					log.Println(player.Avatar)
+					delete(positions, id)
 					team.UpdatePlayer(player.ID, player)
 				}
-
-				log.Println(team.GameMap)
 
 				for id, player := range team.Players {
 					if player.Conn != nil {
 						resp := new(response)
-						resp.FromTeam(team, id)
+						resp.FromTeam(team, id, Playing)
 						err := player.Conn.WriteJSON(resp)
 						if err != nil {
 							conn.Close()
@@ -341,22 +343,31 @@ func game(w http.ResponseWriter, r *http.Request) {
 			conn.WriteJSON(map[string]string{"error": "Player not found"})
 			return
 		}
-
 		if req.Type == Join {
 			player.Conn = conn
-		} else if req.Type == "move" {
-			team.GameMap.MovePlayer(*player.Position, models.Position{X: req.Position.X, Y: req.Position.Y}, player.MapId)
-			player.Position.Update(req.Position.X, req.Position.Y)
+		} else if req.Type == Move {
+			newPositon := models.Position{}
+			newPositon.X = req.Position.X + player.Position.X
+			newPositon.Y = req.Position.Y + player.Position.Y
 
-			for id, p := range team.Players {
-				err := p.Conn.WriteJSON(player)
-				if err != nil {
-					conn.Close()
-					team.Players[id].Conn = nil
-					return
+			if team.GameMap.CanMove(newPositon, *player.Position) {
+				team.GameMap.MovePlayer(*player.Position, newPositon, player.MapId)
+				player.Position.Update(newPositon.X, newPositon.Y)
+
+				for _, p := range team.Players {
+					resp := new(response)
+					resp.FromTeam(team, p.ID, GameMapUpdate)
+					err := p.Conn.WriteJSON(resp)
+					if err != nil {
+						continue
+					}
 				}
+			} else {
+				conn.WriteJSON(map[string]string{"invalid": "Invalid move"})
 			}
 
+		} else {
+			conn.WriteJSON(map[string]string{"error": "Invalid request type"})
 		}
 		team.UpdatePlayer(player.ID, player)
 

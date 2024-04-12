@@ -59,22 +59,25 @@ class Team {
 }
 
 class Response {
-    constructor({ player = {}, team = {} } = {}) {
+    constructor({ player = {}, team = {}, type = '' } = {}) {
         this.player = new Player().fromJSON(player);
         this.team = new Team().fromJSON(team);
+        this.type = type;
     }
 
     fromJSON(json = {}) {
         if (json === null) return this;
         this.team = new Team().fromJSON(json.team || {});
         this.player = new Player().fromJSON(json.player || {});
+        this.type = json.type || this.type;
         return this;
     }
 
     object() {
         return {
             player: this.player.object(),
-            team: this.team.object()
+            team: this.team.object(),
+            type: this.type
         }
     }
 }

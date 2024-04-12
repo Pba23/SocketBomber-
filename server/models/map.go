@@ -109,3 +109,19 @@ func (m *Map) MovePlayer(oldPos, newPos Position, id int) {
 	(*m)[oldPos.X][oldPos.Y] = 0
 	(*m)[newPos.X][newPos.Y] = id
 }
+
+// isvalid checks if the position is valid and is not a wall.
+func (m *Map) IsValid(pos Position) bool {
+	return pos.X >= 0 && pos.X < len(*m) && pos.Y >= 0 && pos.Y < len((*m)[0]) && (*m)[pos.X][pos.Y] != -1
+}
+
+// CanMove checks if the player can move to the new position.
+func (m *Map) CanMove(pos Position, old Position) bool {
+	if !m.IsValid(pos) {
+		return false
+	}
+	if (pos.X+1 == old.X && pos.Y == old.Y) || (pos.X-1 == old.X && pos.Y == old.Y) || (pos.X == old.X && pos.Y+1 == old.Y) || (pos.X == old.X && pos.Y-1 == old.Y) {
+		return (*m)[pos.X][pos.Y] == 0
+	}
+	return false
+}
