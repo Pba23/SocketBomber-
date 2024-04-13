@@ -1,0 +1,18 @@
+package utils
+
+type ReqType string
+
+const (
+	Join             ReqType = "join"
+	Move             ReqType = "move"
+	GameMapUpdate    ReqType = "gameMapUpdate"
+	GameOver         ReqType = "gameOver"
+	BombExploded     ReqType = "bombExploded"
+	PlayerEliminated ReqType = "playerEliminated"
+	PlayerDead       ReqType = "playerDead"
+	PlaceBomb        ReqType = "placeBomb"
+	Playing          ReqType = "playing"
+	Waiting          ReqType = "ready"
+	Chat             ReqType = "chat"
+	PlaceFlame       ReqType = "placeFlame"
+)

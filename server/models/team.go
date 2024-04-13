@@ -26,6 +26,7 @@ type Team struct {
 	State   State                 `json:"state"`
 	GameMap *Map                  `json:"map"`
 	Bombs   []*Bomb               `json:"bomb"`
+	Powers  map[Position]int      `json:"powers"`
 }
 
 type Bomb struct {
@@ -34,14 +35,20 @@ type Bomb struct {
 	Timer    int      `json:"timer"`
 	Power    int      `json:"power"`
 	Exploded bool     `json:"exploded"`
+	Type     string   `json:"type"`
 }
 
-func (b *Bomb) NewBomb(x, y int) {
+func (b *Bomb) NewBomb(x, y int, t ...string) {
 	b.Position = Position{X: x, Y: y}
 	b.Id = uuid.New()
 	b.Exploded = false
 	b.Timer = 3
 	b.Power = 1
+	if len(t) > 0 {
+		b.Type = t[0]
+	}else {
+		b.Type = "normal"
+	}
 }
 
 func (T *Team) PlaceBomb(x, y int) (bool, uuid.UUID) {
@@ -67,7 +74,7 @@ func (T *Team) RemoveExplosion(id uuid.UUID) {
 	// log.Println("Removing explosion")
 	for i, b := range T.Bombs {
 		if b.Id == id {
-			b.RemoveExplosion(T.GameMap)
+			b.RemoveExplosion(T.GameMap, T.Powers)
 			T.Bombs = append(T.Bombs[:i], T.Bombs[i+1:]...)
 		}
 	}
@@ -126,27 +133,42 @@ func (b *Bomb) Explode(gameMap *Map) []int {
 	return deadPlayers
 }
 
-func (b *Bomb) RemoveExplosion(gameMap *Map) {
+func (b *Bomb) RemoveExplosion(gameMap *Map, powers map[Position]int) {
 	(*gameMap)[b.Position.X][b.Position.Y] = 0
+	if power, ok := powers[b.Position]; ok {
+		(*gameMap)[b.Position.X][b.Position.Y] = power
+	}
 	// Replace the positions around the bomb with 0
 	if b.Position.X+1 < len(*gameMap) && (*gameMap)[b.Position.X+1][b.Position.Y] != -1 {
 		(*gameMap)[b.Position.X+1][b.Position.Y] = 0
+		if power, ok := powers[Position{X: b.Position.X + 1, Y: b.Position.Y}]; ok {
+			(*gameMap)[b.Position.X+1][b.Position.Y] = power
+		}
 	}
 	if b.Position.X-1 >= 0 && (*gameMap)[b.Position.X-1][b.Position.Y] != -1 {
 		(*gameMap)[b.Position.X-1][b.Position.Y] = 0
+		if power, ok := powers[Position{X: b.Position.X - 1, Y: b.Position.Y}]; ok {
+			(*gameMap)[b.Position.X-1][b.Position.Y] = power
+		}
 	}
 	if b.Position.Y+1 < len((*gameMap)[0]) && (*gameMap)[b.Position.X][b.Position.Y+1] != -1 {
 		(*gameMap)[b.Position.X][b.Position.Y+1] = 0
+		if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y + 1}]; ok {
+			(*gameMap)[b.Position.X][b.Position.Y+1] = power
+		}
 	}
 	if b.Position.Y-1 >= 0 && (*gameMap)[b.Position.X][b.Position.Y-1] != -1 {
 		(*gameMap)[b.Position.X][b.Position.Y-1] = 0
+		if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y - 1}]; ok {
+			(*gameMap)[b.Position.X][b.Position.Y-1] = power
+		}
 	}
 	// log.Println("Explosion removed", gameMap)
 }
 
 // NewTeam creates a new team.
 func NewTeam(name string, size int) *Team {
-	return &Team{
+	t := &Team{
 		ID:      uuid.New(),
 		Name:    name,
 		Players: make(map[uuid.UUID]*Player, MaxPlayers),
@@ -154,6 +176,7 @@ func NewTeam(name string, size int) *Team {
 		GameMap: NewMap(size),
 		Bombs:   []*Bomb{},
 	}
+	return t
 }
 
 // AddPlayer adds a new player.
