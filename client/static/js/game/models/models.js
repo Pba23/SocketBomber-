@@ -1,10 +1,11 @@
 class Player {
-    constructor(id = '', nickname = '', x = 0, y = 0, avatar = '') {
+    constructor(id = '', nickname = '', x = 0, y = 0, avatar = '', life = 3) {
         this.id = id;
         this.nickname = nickname;
         this.position = { x, y };
         this.avatar = avatar;
         this.mapId = '';
+        this.life = life
     }
 
     fromJSON(json = {}) {
@@ -14,6 +15,7 @@ class Player {
         this.position = json.position || this.position;
         this.avatar = json.avatar || this.avatar;
         this.mapId = json.mapId || this.mapId;
+        this.life =json.life || this.life;
         return this;
     }
 
@@ -23,7 +25,8 @@ class Player {
             nickname: this.nickname,
             position: this.position,
             avatar: this.avatar,
-            mapId: this.mapId
+            mapId: this.mapId,
+            life : this.life
         }
     }
 }
