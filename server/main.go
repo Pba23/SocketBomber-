@@ -229,8 +229,14 @@ const (
 	PlayerDead       ReqType = "playerDead"
 	PlaceBomb        ReqType = "placeBomb"
 	Playing          ReqType = "playing"
+	Waiting          ReqType = "ready"
 	Chat             ReqType = "chat"
 )
+
+var playerCount int
+var timerStarted bool
+var timeExpired bool
+var timerCh <-chan time.Time
 
 func waitingpage(w http.ResponseWriter, r *http.Request) {
 	type request struct {
@@ -288,6 +294,43 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+
+			playerCount++
+			if playerCount == 2 && !timerStarted {
+				timerCh = time.After(20 * time.Second)
+				timerStarted = true
+
+				go func() {
+					<-timerCh
+					team.State = models.Playing
+					team.GameMap.GenerateGameTerrain(len(team.Players))
+					positions := team.GameMap.GenerateStartingAreas(team.Players)
+					for id, player := range team.Players {
+						team.GameMap.MovePlayer(*player.Position, positions[id], player.MapId)
+						player.Position.Update(positions[id].X, positions[id].Y)
+						delete(positions, id)
+						team.UpdatePlayer(player.ID, player)
+					}
+
+					for id, player := range team.Players {
+						if player.Conn != nil {
+							resp := new(response)
+							resp.FromTeam(team, id, Playing)
+							err := player.Conn.WriteJSON(resp)
+							if err != nil {
+								conn.Close()
+								team.Players[id].Conn = nil
+								return
+							}
+						}
+					}
+					playerCount = 0
+					timerStarted = false
+					timeExpired = false
+					timerCh = nil
+				}()
+			}
+
 			if len(team.Players) == models.MaxPlayers {
 				team.State = models.Playing
 				team.GameMap.GenerateGameTerrain(len(team.Players))
@@ -311,6 +354,10 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 				}
+				playerCount = 0
+				timerStarted = false
+				timeExpired = false
+				timerCh = nil
 			}
 
 			engine.Update(team.ID, team)

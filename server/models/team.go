@@ -12,7 +12,7 @@ const (
 	Waiting    State = "waiting"
 	Playing    State = "playing"
 	Finished   State = "finished"
-	MaxPlayers       = 2
+	MaxPlayers       = 4
 )
 
 var Avatars = []string{"👾", "👻", "🤖", "👹", "☠️", "🕵️‍♀️"}
