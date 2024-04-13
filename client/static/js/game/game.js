@@ -65,8 +65,10 @@ class Chat extends router.Component {
                     createElement('div', { class: 'content' }, [
                         createElement('div', { class: 'players-list' },
                             this.props.state.team.players.map(player => {
-                                return createElement('div', { class: 'player' }, [
-                                    createElement('img', { src: player.avatar, alt: player.nickname }),
+                                return createElement('div', { class: 'player', id: player.id }, [
+                                    createElement('i', { }, player.avatar),
+                                    // createElement('img', { src: player.avatar, alt: player.nickname }),
+                                    createElement('p', {}, player.nickname),
                                     createElement('div', { class: 'player-name' }, player.nickname),
                                     createElement('div', { class: 'player-status' }, player.status),
                                     createElement('div', { class: 'player-life' },
@@ -293,7 +295,7 @@ class Game extends router.Component {
                         this.removeState();
                         this.redirectTo('/');
                     });
-                    
+
                     // Append the button to the modal
                     modal.appendChild(button);
 
@@ -315,6 +317,17 @@ class Game extends router.Component {
 
         if ((player && player.id !== undefined && value !== undefined) && player.id === value) {
             this.notifier()
+            const playerContainer = document.getElementById(`${player.id}`);
+            const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+            const lastChild = listOfLife[listOfLife.length - 1];
+            lastChild.classList.remove('full')
+            lastChild.classList.add('empty')
+            // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+            console.log(lastChild)
+
+            let playerLife = document.querySelector('.player-life i.full:last-child')
+            console.log(playerLife)
+
         } else {
             console.log('Player eliminated:', value);
             // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
