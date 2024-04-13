@@ -11,7 +11,7 @@ import (
 
 var playerCount int
 var timerStarted bool
-var timeExpired bool
+var countDown bool = false
 var timerCh <-chan time.Time
 
 func Waitingpage(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +76,19 @@ func Waitingpage(w http.ResponseWriter, r *http.Request) {
 				timerCh = time.After(20 * time.Second)
 				timerStarted = true
 
+				for id, player := range team.Players {
+					if player.Conn != nil {
+						resp := new(utils.Response)
+						resp.FromTeam(team, id, utils.Ready)
+						err := player.Conn.WriteJSON(resp)
+						if err != nil {
+							conn.Close()
+							team.Players[id].Conn = nil
+							return
+						}
+					}
+				}
+
 				go func() {
 					<-timerCh
 					team.State = models.Playing
@@ -103,9 +116,9 @@ func Waitingpage(w http.ResponseWriter, r *http.Request) {
 					}
 					playerCount = 0
 					timerStarted = false
-					timeExpired = false
 					timerCh = nil
 				}()
+
 			}
 
 			if len(team.Players) == models.MaxPlayers {
@@ -133,9 +146,21 @@ func Waitingpage(w http.ResponseWriter, r *http.Request) {
 				}
 				playerCount = 0
 				timerStarted = false
-				timeExpired = false
 				timerCh = nil
 			}
+			if countDown {
+				countDown = false
+			} else if timerStarted {
+				resp := new(utils.Response)
+				resp.FromTeam(team, player.ID, utils.Ready)
+				err := player.Conn.WriteJSON(resp)
+				if err != nil {
+					conn.Close()
+					team.Players[player.ID].Conn = nil
+					return
+				}
+			}
+
 			utils.Engine.Update(team.ID, team)
 		}
 	}

@@ -65,7 +65,7 @@ class Home extends router.Component {
 
         return (
             createElement('div', { class: 'game' }, [
-                createElement('h1', { class: 'title' }, 'Welcome to Bomb City'),
+                createElement('h1', { class: 'title' }, 'Welcome to Bomberman Tournament'),
                 createElement('div', { class: 'box' }, [
                     createElement('input', {
                         class: 'new-nickname',

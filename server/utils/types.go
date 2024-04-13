@@ -12,7 +12,7 @@ const (
 	PlayerDead       ReqType = "playerDead"
 	PlaceBomb        ReqType = "placeBomb"
 	Playing          ReqType = "playing"
-	Waiting          ReqType = "ready"
+	Ready          ReqType = "ready"
 	Chat             ReqType = "chat"
 	PlaceFlame       ReqType = "placeFlame"
 )

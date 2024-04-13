@@ -67,19 +67,7 @@ class WaitingRoom extends router.Component {
                 if (resp.team.state === 'ready') {
                 }
                 if (resp.team.state === 'playing') {
-                    const app = document.getElementById('app')
-                    const timer = document.getElementById('timer');
-                    const wrapperElement = document.querySelector('.wrapper');
-
-                    app.style.display = 'none'
-                    timer.style.display = 'block';
-                    wrapperElement.classList.add('active');
-
-                    setTimeout(() => {
-                        timer.style.display = 'none';
-                        app.style, display = 'none'
-                        wrapperElement.classList.remove('active');
-                    }, 10000);
+                    this.countdown(10)
                     this.redirectTo('/game');
                 }
             }
@@ -98,6 +86,31 @@ class WaitingRoom extends router.Component {
 
     removeState() {
         localStorage.removeItem('game');
+    }
+
+    countdown(duration) {
+        const endTime = new Date().getTime() + (duration * 1000);
+
+        function updateTime() {
+            const now = new Date().getTime();
+            const distance = endTime - now;
+
+            if (distance < 0) {
+                document.getElementById('countdown').innerHTML = '';
+            } else {
+                // const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                // const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                // const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                // const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                const seconds = Math.floor(distance / 1000);
+
+                document.getElementById('countdown').innerHTML = `Game starts in ${seconds}`;
+
+                requestAnimationFrame(updateTime);
+            }
+        }
+
+        updateTime();
     }
 
 
@@ -131,7 +144,8 @@ class WaitingRoom extends router.Component {
             ]),
             createElement('div', { class: 'players' }, [
                 createElement('ul', { class: 'list' }, playerList),
-            ])
+            ]),
+            createElement('div', { id: 'countdown', class: 'countdown' }, '')
         ]);
     }
 }
