@@ -64,6 +64,8 @@ class WaitingRoom extends router.Component {
                         }
                     });
                 }
+                if (resp.team.state === 'ready') {
+                }
                 if (resp.team.state === 'playing') {
                     this.redirectTo('/game');
                 }

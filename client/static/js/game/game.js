@@ -25,12 +25,12 @@ class Chat extends router.Component {
         // Update state with the incoming chat message
         this.setState({ messages: [...this.state.messages, message] });
     };
-    
+
     handleInputChange(event) {
         this.props.disableControls()
         this.setState({ newMessage: event.target.value });
     }
-    
+
     handleSendMessage = (event) => {
         this.props.activateControls()
         event.preventDefault()
@@ -94,7 +94,7 @@ class Chat extends router.Component {
                         ]),
                     ]),
                     createElement('div', { class: 'footer' }, [
-                        createElement('input', { class: 'new-message', value: this.state.newMessage, onInput: this.handleInputChange.bind(this), onFocus: this.props.handleChatInputFocus, onBlur: this.props.handleChatInputBlur,type: 'text', placeholder: 'Type a message...' }),
+                        createElement('input', { class: 'new-message', value: this.state.newMessage, onInput: this.handleInputChange.bind(this), onFocus: this.props.handleChatInputFocus, onBlur: this.props.handleChatInputBlur, type: 'text', placeholder: 'Type a message...' }),
                         createElement('button', { type: 'button', class: 'send', onClick: this.handleSendMessage.bind(this) }, 'Send'),
                     ]),
                 ]),
@@ -113,7 +113,13 @@ class Chat extends router.Component {
 //     createElement('button', { class: 'send' }, 'Send')
 // ]),
 
-
+class LoadingScreen extends router.Component {
+    render() {
+        return createElement('div', { class: 'loading-screen' }, [
+            createElement('div', { class: 'spinner' }, 'Loading...'), // You can customize the loading indicator
+        ]);
+    }
+}
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
@@ -163,6 +169,7 @@ class Game extends router.Component {
 
         this.state.avatars
         this.state = {
+            gameLoading: true,
             firstRender: true,
             avatars: avatars,
             messages: [],
@@ -240,12 +247,12 @@ class Game extends router.Component {
                     Content: data.Message.Content, // Extract the message content from the data
                 };
                 // Update the state to include the new chat message
-                this.setState({ 
+                this.setState({
                     messages: [
-                        ...this.state.messages, 
+                        ...this.state.messages,
                         newMessage
                     ]
-                    
+
                 });
                 this.handleNewMessage(newMessage)
                 break;
@@ -339,6 +346,7 @@ class Game extends router.Component {
                 }
             };
         });
+        this.setState({ gameLoading: false });
 
     }
 
@@ -429,6 +437,11 @@ class Game extends router.Component {
     }
 
     startGameLoop() {
+        const loader = document.getElementById('app')
+
+        setTimeout(() => {
+            this.setState({ gameLoading: false }); // Set gameLoading to false after 10 seconds
+        }, 10000); // 10 seconds in milliseconds
         if (!this.animationFrameId) {
             // Prevent multiple loops from starting
             this.gameLoop(); // Start the loop
@@ -537,6 +550,9 @@ class Game extends router.Component {
     }
 
     render() {
+        if (this.state.gameLoading) {
+            return new LoadingScreen(this, this.stateManager).render(); // Render a loading screen while the game is loading
+        }
         // console.log(this.ws.send)
         return createElement('div', { class: 'container' }, [
             new Map(this, this.stateManager).render(),
