@@ -59,6 +59,7 @@ type response struct {
 		Nickname string    `json:"nickname"`
 		Avatar   string    `json:"avatar"`
 		MapId    int       `json:"mapId"`
+		Life    int       `json:"life"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -75,6 +76,7 @@ type response struct {
 			Nickname string    `json:"nickname"`
 			Avatar   string    `json:"avatar"`
 			MapId    int       `json:"mapId"`
+			Life     int       `json:"life"`
 			Position struct {
 				X int `json:"x"`
 				Y int `json:"y"`
@@ -84,8 +86,8 @@ type response struct {
 	} `json:"team"`
 	Type    ReqType `json:"type"`
 	Message struct {
-		Author  string `json:author`
-		Content string `json:content`
+		Author  string `json:"author"`
+		Content string `json:"content"`
 	}
 }
 
@@ -96,8 +98,8 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 	r.Type = t
 	r.Team.Bombs = team.Bombs
 	r.Message = struct {
-		Author  string "json:author"
-		Content string "json:content"
+		Author  string `json:"author"`
+		Content string `json:"content"`
 	}{}
 	p := team.GetPlayer(id)
 	r.Player = struct {
@@ -105,6 +107,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 		Nickname string    `json:"nickname"`
 		Avatar   string    `json:"avatar"`
 		MapId    int       `json:"mapId"`
+		Life     int       `json:"life"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -114,6 +117,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 		Nickname: p.Nickname,
 		Avatar:   p.Avatar,
 		MapId:    p.MapId,
+		Life:     p.Life,
 		Position: struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -128,6 +132,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 		Nickname string    `json:"nickname"`
 		Avatar   string    `json:"avatar"`
 		MapId    int       `json:"mapId"`
+		Life     int       `json:"life"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -141,6 +146,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 			Nickname string    `json:"nickname"`
 			Avatar   string    `json:"avatar"`
 			MapId    int       `json:"mapId"`
+			Life     int       `json:"life"`
 			Position struct {
 				X int `json:"x"`
 				Y int `json:"y"`
@@ -150,6 +156,7 @@ func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
 			Nickname: player.Nickname,
 			Avatar:   player.Avatar,
 			MapId:    player.MapId,
+			Life:     player.Life,
 			Position: struct {
 				X int `json:"x"`
 				Y int `json:"y"`

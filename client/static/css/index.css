@@ -484,6 +484,30 @@
     cursor: pointer;
   }
   
+  .my-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.my-modal button {
+    background-color: white;
+    color: red;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
   /* Loading screen styles */
 .loading-screen {
     position: fixed;
