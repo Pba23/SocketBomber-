@@ -27,6 +27,7 @@ type Team struct {
 	GameMap *Map                  `json:"map"`
 	Bombs   []*Bomb               `json:"bomb"`
 	Powers  map[Position]int      `json:"powers"`
+	Start   bool                  `json:"start"`
 }
 
 type Bomb struct {
@@ -46,7 +47,7 @@ func (b *Bomb) NewBomb(x, y int, t ...string) {
 	b.Power = 1
 	if len(t) > 0 {
 		b.Type = t[0]
-	}else {
+	} else {
 		b.Type = "normal"
 	}
 }
@@ -175,6 +176,7 @@ func NewTeam(name string, size int) *Team {
 		State:   Waiting,
 		GameMap: NewMap(size),
 		Bombs:   []*Bomb{},
+		Start:   false,
 	}
 	return t
 }

@@ -4,9 +4,13 @@ import (
 	"bomberman/models"
 	"bomberman/utils"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+var mutex = &sync.Mutex{}
 
 func Game(w http.ResponseWriter, r *http.Request) {
 	type request struct {
@@ -41,9 +45,25 @@ func Game(w http.ResponseWriter, r *http.Request) {
 			conn.WriteJSON(map[string]string{"error": "Team not found"})
 			return
 		}
+
 		if team.State != models.Playing {
 			conn.WriteJSON(map[string]string{"error": "Game not started or already finished"})
 			return
+		}
+		if !team.Start {
+			if !team.Start {
+				go func() {
+					time.Sleep(10 * time.Second) // wait for 10 seconds
+
+					mutex.Lock()
+
+					team.Start = true // set team.Start to true
+					mutex.Unlock()
+
+					// save team in engine
+					utils.Engine.Update(team.ID, team)
+				}()
+			}
 		}
 		player := team.GetPlayer(req.PlayerId)
 		if player == nil {
@@ -69,7 +89,13 @@ func Game(w http.ResponseWriter, r *http.Request) {
 			}
 		} else if req.Type == utils.Join {
 			player.Conn = conn
+			if !team.Start {
+				continue
+			}
 		} else if req.Type == utils.Move {
+			if !team.Start {
+				continue
+			}
 			if player.IsDead() {
 				continue
 			}
@@ -101,6 +127,9 @@ func Game(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else if req.Type == utils.PlaceBomb {
+			if !team.Start {
+				continue
+			}
 			if player.IsDead() {
 				continue
 			}
@@ -121,9 +150,15 @@ func Game(w http.ResponseWriter, r *http.Request) {
 			player.Position.Unlock()
 
 		} else if req.Type == utils.PlaceFlame {
+			if !team.Start {
+				continue
+			}
 			continue
 			// utils.FlamePower(team, player)
 		} else {
+			if !team.Start {
+				continue
+			}
 			conn.WriteJSON(map[string]string{"error": "Invalid request type"})
 		}
 		team.UpdatePlayer(player.ID, player)
