@@ -79,17 +79,17 @@ class Chat extends router.Component {
                         )
                     ]),
                 ]),
-                createElement('div', { class: 'chat chat-container' }, [
+                createElement('div', { class: 'chat' }, [
                     createElement('div', { class: 'header' }, [
                         createElement('div', { class: 'title' }, `Chat`),
                         createElement('div', { class: 'content' }, [
                             createElement('div', { class: 'messages' }, [
-                                // this.props.state.messages.map((message, index) => (
-                                //     createElement('div', { key: index, class: 'message' }, [
-                                //         createElement('div', { class: 'message-author' }, message.Author),
-                                //         createElement('div', { class: 'message-content' }, message.Content),
-                                //     ])
-                                // )),
+                                this.props.state.messages.map((message, index) => (
+                                    createElement('div', { key: index, class: 'message' }, [
+                                        createElement('div', { class: 'message-author' }, message.Author),
+                                        createElement('div', { class: 'message-content' }, message.Content),
+                                    ])
+                                )),
                             ]),
                         ]),
                     ]),
@@ -267,26 +267,28 @@ class Game extends router.Component {
             case "playerDead":
                 if (player.id === value) {
                     this.disableControls()
-                    const modal = createElement('div', { class: '' }, [
-                        createElement('button', {
-                            onclick: () => {
-                                this.removeState();
-                                this.redirectTo('/');
-                            }
-                        }, "Replay"),
-                        "You are dead!"
-                    ])
-                    // Create a new modal
-                    // let modal = document.createElement('div');
-                    // modal.style.position = "fixed";
-                    // modal.style.zIndex = "1000";
-                    // modal.style.left = "0";
-                    // modal.style.top = "0";
-                    // modal.style.backgroundColor = "red";
-                    // modal.style.color = "white";
-                    // modal.style.padding = "10px";
-                    // modal.innerText =
 
+                    // Create a new modal
+                    let modal = document.createElement('div');
+                    modal.style.position = "fixed";
+                    modal.style.zIndex = "1000";
+                    modal.style.left = "0";
+                    modal.style.top = "0";
+                    modal.style.backgroundColor = "red";
+                    modal.style.color = "white";
+                    modal.style.padding = "10px";
+                    modal.innerText = "You are dead! Game over for you! 🧨💥"
+
+                    // Create a new button
+                    let button = document.createElement('button');
+                    button.innerText = "Replay";
+                    addListener(button, "click", () => {
+                        this.removeState();
+                        this.redirectTo('/');
+                    });
+                    
+                    // Append the button to the modal
+                    modal.appendChild(button);
 
                     // Append the modal to the body
                     document.body.appendChild(modal);
@@ -395,21 +397,11 @@ class Game extends router.Component {
 
     handleNewMessage = (message) => {
         const container = document.querySelector('.messages');
-        // container.classList.add('chat-messages')
 
-        if (this.state.player.nickname == message.Author) {
-            console.log("own")
-            container.appendChild(createElement('div', { class: 'message own-message' }, [
-                createElement('div', { class: 'message-author' }, message.Author),
-                createElement('div', { class: 'message-content' }, message.Content),
-            ]))
-        } else {
-            console.log("individual")
-            container.appendChild(createElement('div', { class: 'message chat-message' }, [
-                createElement('div', { class: 'message-author' }, message.Author),
-                createElement('div', { class: 'message-content' }, message.Content),
-            ]))
-        }
+        container.appendChild(createElement('div', { class: 'message' }, [
+            createElement('div', { class: 'message-author' }, message.Author),
+            createElement('div', { class: 'message-content' }, message.Content),
+        ]))
 
     };
 
