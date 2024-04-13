@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -65,7 +64,7 @@ func (T *Team) ExplodeBomb(id uuid.UUID) []int {
 }
 
 func (T *Team) RemoveExplosion(id uuid.UUID) {
-	log.Println("Removing explosion")
+	// log.Println("Removing explosion")
 	for i, b := range T.Bombs {
 		if b.Id == id {
 			b.RemoveExplosion(T.GameMap)
@@ -142,7 +141,7 @@ func (b *Bomb) RemoveExplosion(gameMap *Map) {
 	if b.Position.Y-1 >= 0 && (*gameMap)[b.Position.X][b.Position.Y-1] != -1 {
 		(*gameMap)[b.Position.X][b.Position.Y-1] = 0
 	}
-	log.Println("Explosion removed", gameMap)
+	// log.Println("Explosion removed", gameMap)
 }
 
 // NewTeam creates a new team.

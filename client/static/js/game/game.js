@@ -79,17 +79,17 @@ class Chat extends router.Component {
                         )
                     ]),
                 ]),
-                createElement('div', { class: 'chat' }, [
+                createElement('div', { class: 'chat chat-container' }, [
                     createElement('div', { class: 'header' }, [
                         createElement('div', { class: 'title' }, `Chat`),
                         createElement('div', { class: 'content' }, [
                             createElement('div', { class: 'messages' }, [
-                                this.props.state.messages.map((message, index) => (
-                                    createElement('div', { key: index, class: 'message' }, [
-                                        createElement('div', { class: 'message-author' }, message.Author),
-                                        createElement('div', { class: 'message-content' }, message.Content),
-                                    ])
-                                )),
+                                // this.props.state.messages.map((message, index) => (
+                                //     createElement('div', { key: index, class: 'message' }, [
+                                //         createElement('div', { class: 'message-author' }, message.Author),
+                                //         createElement('div', { class: 'message-content' }, message.Content),
+                                //     ])
+                                // )),
                             ]),
                         ]),
                     ]),
@@ -358,11 +358,21 @@ class Game extends router.Component {
 
     handleNewMessage = (message) => {
         const container = document.querySelector('.messages');
+        // container.classList.add('chat-messages')
 
-        container.appendChild(createElement('div', { class: 'message' }, [
-            createElement('div', { class: 'message-author' }, message.Author),
-            createElement('div', { class: 'message-content' }, message.Content),
-        ]))
+        if (this.state.player.nickname == message.Author) {
+            console.log("own")
+            container.appendChild(createElement('div', { class: 'message own-message' }, [
+                createElement('div', { class: 'message-author' }, message.Author),
+                createElement('div', { class: 'message-content' }, message.Content),
+            ]))
+        } else {
+            console.log("individual")
+            container.appendChild(createElement('div', { class: 'message chat-message' }, [
+                createElement('div', { class: 'message-author' }, message.Author),
+                createElement('div', { class: 'message-content' }, message.Content),
+            ]))
+        }
 
     };
 
