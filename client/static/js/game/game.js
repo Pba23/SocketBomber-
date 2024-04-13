@@ -200,7 +200,7 @@ class Game extends router.Component {
         const resp = new models.Response();
         resp.fromJSON(data);
 
-        const { type, team, player } = resp;
+        const { type, team, player, value } = resp;
 
         switch (type) {
             // case "updatePlayers":
@@ -222,7 +222,7 @@ class Game extends router.Component {
                 });
                 break;
             case "playerEliminated":
-                this.handlePlayerElimination(player);
+                this.handlePlayerElimination(player, value);
                 break;
             case "gameMapUpdate":
                 this.setState({
@@ -256,9 +256,9 @@ class Game extends router.Component {
             // case "chatMessage":
             //     this.setState({ messages: [...this.state.messages, message] });
             //     break;
-            // case "waitLobby":
-            //     this.setState({ time: time, playersCount: players });
-            //     break;
+            case "playerDead":
+                this.setState({ time: time, playersCount: players });
+                break;
             // case "gameOver":
             //     alert(message);
             //     this.resetGame();
@@ -269,29 +269,12 @@ class Game extends router.Component {
         }
     }
 
-    handlePlayerElimination(player) {
+    handlePlayerElimination(player, value) {
 
-        if ((player && player.id !== undefined && this.state?.player?.id !== undefined) && player.id === this.state.player.id) {
-            // Create a new notification
-            let notification = document.createElement('div');
-            notification.innerText = "You have been eliminated!";
-            notification.style.position = "fixed";
-            notification.style.zIndex = "1000";
-            notification.style.left = "50%";
-            notification.style.top = "50%";
-            notification.style.transform = "translate(-50%, -50%)";
-            notification.style.backgroundColor = "red";
-            notification.style.color = "white";
-            notification.style.padding = "10px";
-            document.body.appendChild(notification);
-
-            // Remove the notification after 2 seconds
-            const out = setTimeout(() => {
-                document.body.removeChild(notification);
-                clearTimeout(out);
-            }, 2000);
+        if ((player && player.id !== undefined && value !== undefined) && player.id === value) {
+            this.notifier()
         } else {
-            console.log('Player eliminated:', player.nickname);
+            console.log('Player eliminated:', value);
             // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
         }
         this.setState({
@@ -306,6 +289,27 @@ class Game extends router.Component {
 
             }
         });
+    }
+
+    notifier(msg = 'You have been eliminated!', duration = 2000) {
+        // Create a new notification
+        let notification = document.createElement('div');
+        notification.innerText = msg;
+        notification.style.position = "fixed";
+        notification.style.zIndex = "1000";
+        notification.style.left = "50%";
+        notification.style.top = "50%";
+        notification.style.transform = "translate(-50%, -50%)";
+        notification.style.backgroundColor = "red";
+        notification.style.color = "white";
+        notification.style.padding = "10px";
+        document.body.appendChild(notification);
+
+        // Remove the notification after 2 seconds
+        const out = setTimeout(() => {
+            document.body.removeChild(notification);
+            clearTimeout(out);
+        }, duration);
     }
 
     init() {
