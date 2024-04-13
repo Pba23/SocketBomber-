@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"math"
 	"math/rand"
 	"sort"
@@ -141,4 +142,36 @@ func (m *Map) CanMove(pos Position, old Position) bool {
 // RemovePlayer removes the player from the map.
 func (m *Map) RemovePlayer(pos Position) {
 	(*m)[pos.X][pos.Y] = 0
+}
+
+var PowerUps = []int{-10, -20, -30}
+
+// var PowerUpEmoji = []string{"🔥", "🧨", "💢"}
+
+// GeneratePowerUp generates a power up on the map.
+func (m *Map) GeneratePowerUps() map[Position]int {
+	// Generate power ups
+	powers := map[Position]int{}
+	allblocks := []Position{}
+	for i, row := range *m {
+		for j, cell := range row {
+			if cell == 1 {
+				allblocks = append(allblocks, Position{X: i, Y: j})
+			}
+		}
+	}
+	// generate 10 random power ups using random blocks
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < 10; i++ {
+		if len(allblocks) == 0 {
+			break
+		}
+		idx := r.Intn(len(allblocks))
+		pos := allblocks[idx]
+		power := PowerUps[r.Intn(len(PowerUps))]
+		powers[pos] = power
+		allblocks = append(allblocks[:idx], allblocks[idx+1:]...)
+	}
+	log.Println("Power ups generated: ", powers)
+	return powers
 }

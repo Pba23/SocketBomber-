@@ -529,7 +529,11 @@ class Game extends router.Component {
     }
 
     mapRander(map2d, avatars, bombs = []) {
-
+        const PowerUp = {
+            "-10": "🔥",
+            "-20": "🧨",
+            "-30": "💢",
+        }
         const decor = {
             "0": "",
             "1": "🧱",
@@ -557,10 +561,16 @@ class Game extends router.Component {
 
                         }
                     }
-                    return createElement('div', {
-                        class: `map-cell ${rowIndex}${cellIndex}`,
+                    if (cell < -1) {
+                        return createElement('div', {
+                            class: `map-cell ${rowIndex}${cellIndex}`,
+                        }, PowerUp[cell]);
+                    } else {
+                        return createElement('div', {
+                            class: `map-cell ${rowIndex}${cellIndex}`,
 
-                    }, `${canPlaceBomb ? '💣' : (cell == 100) ? '🔥' : cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
+                        }, `${canPlaceBomb ? '💣' : (cell == 100) ? '💥' : cell <= 2 ? decor[cell] : avatars[cell] || ''}`);
+                    }
                 })
             })
         ]);
@@ -568,6 +578,7 @@ class Game extends router.Component {
 
 
     handleKeyDown = (event) => {
+        console.log('Key pressed:', event.key);
         const move = { x: 0, y: 0 };
         switch (event.key) {
             case "ArrowUp":
@@ -599,6 +610,23 @@ class Game extends router.Component {
                 // console.log('place bomb');
                 this.ws.send(request);
                 return;
+            case "f" || "F":
+                //    fire all the row 
+                let req = {
+                    playerId: this.state.player?.id, // Remplacer par un UUID valide
+                    teamId: this.state.team?.id, // Remplacer par un UUID valide
+                    position: {
+                        x: move.x,
+                        y: move.y
+                    },
+                    message: {
+                        content: ""
+                    },
+                    type: "placeFlame" // Remplacer par une valeur valide pour ReqType
+                };
+                // console.log('place bomb');
+                this.ws.send(req);
+                return
             default:
                 return;
         }

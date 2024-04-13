@@ -17,6 +17,7 @@ type Player struct {
 	Life     int       `json:"life"`
 	Team     *Team     `json:"team"`
 	Conn     *websocket.Conn
+	Powers   []int
 }
 
 // NewPlayer creates a new player.
