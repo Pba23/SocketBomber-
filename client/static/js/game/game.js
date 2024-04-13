@@ -58,14 +58,14 @@ class Chat extends router.Component {
 
     generateBooleanArray(number) {
         if (number === 3) {
-            return [true, true, false];
+            return [true, true, true];
         } else if (number === 2) {
-            return [true, false, false];
+            return [true, true, false];
         } else if (number === 1) {
-            return [false, false, false];
+            return [true, false, false];
         } else {
             // Handle other cases if needed
-            return [];
+            return [false, false, false];
         }
     }
 
@@ -81,7 +81,7 @@ class Chat extends router.Component {
                             this.props.state.team.players.map(player => {
                                 const booleanArray = this.generateBooleanArray(player.life)
                                 return createElement('div', { class: 'player', id: player.id }, [
-                                    createElement('i', { }, player.avatar),
+                                    createElement('i', {}, player.avatar),
                                     // createElement('img', { src: player.avatar, alt: player.nickname }),
                                     createElement('p', {}, player.nickname),
                                     createElement('div', { class: 'player-name' }, player.nickname),
@@ -220,7 +220,7 @@ class Game extends router.Component {
         } else if (!this.state.team.id || !this.state.player.id) {
             this.removeState();
             this.redirectTo('/');
-        }else if (this.team.state === 'finished'){
+        } else if (this.team.state === 'finished') {
             this.gameOver('Game over! 🎉🎉🎉');
         }
     }
@@ -325,7 +325,7 @@ class Game extends router.Component {
     gameOver(msg = 'You are dead! Game over for you! 🧨💥') {
         let modal = createElement('div', { class: 'game-over' }, [
             createElement('h1', { class: 'title' }, 'Game Over'),
-            createElement('p', { class: 'message' },msg),
+            createElement('p', { class: 'message' }, msg),
             createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
         ]);
         // Create a new modal
@@ -356,7 +356,7 @@ class Game extends router.Component {
 
     handlePlayerElimination(player, value) {
 
-        if ((player && player.id !== undefined && value !== undefined) && player.id === value) {
+        if ((player && player.id !== undefined && value !== undefined) && player.id === value && player.life > 0) {
             this.notifier()
             const playerContainer = document.getElementById(`${player.id}`);
             const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
@@ -365,13 +365,23 @@ class Game extends router.Component {
             lastChild.classList.add('empty')
             // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
             console.log(lastChild)
-
             let playerLife = document.querySelector('.player-life i.full:last-child')
-            console.log(playerLife)
 
         } else {
             console.log('Player eliminated:', value);
-            // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+            if (player.life > 0) {
+                const playerContainer = document.getElementById(`${value}`);
+                const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+                const lastChild = listOfLife[listOfLife.length - 1];
+                lastChild.classList.remove('full')
+                lastChild.classList.add('empty')
+                // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+                console.log(lastChild)
+
+                let playerLife = document.querySelector('.player-life i.full:last-child')
+                console.log(playerLife)
+                // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+            }
         }
     }
 
