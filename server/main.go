@@ -59,7 +59,7 @@ type response struct {
 		Nickname string    `json:"nickname"`
 		Avatar   string    `json:"avatar"`
 		MapId    int       `json:"mapId"`
-		Life    int       `json:"life"`
+		Life     int       `json:"life"`
 		Position struct {
 			X int `json:"x"`
 			Y int `json:"y"`
@@ -88,7 +88,7 @@ type response struct {
 	Message struct {
 		Author  string `json:"author"`
 		Content string `json:"content"`
-	}
+	} `json:"message"`
 }
 
 func (r *response) FromTeam(team *models.Team, id uuid.UUID, t ReqType) {
@@ -231,6 +231,7 @@ const (
 	Join             ReqType = "join"
 	Move             ReqType = "move"
 	GameMapUpdate    ReqType = "gameMapUpdate"
+	GameOver         ReqType = "gameOver"
 	BombExploded     ReqType = "bombExploded"
 	PlayerEliminated ReqType = "playerEliminated"
 	PlayerDead       ReqType = "playerDead"
@@ -482,7 +483,7 @@ func game(w http.ResponseWriter, r *http.Request) {
 								for _, p := range team.Players {
 									if p.MapId == v {
 										isdead := p.LifeDown()
-										team.UpdatePlayer(p.ID, p)
+										team.AddPlayer(p)
 										for _, pp := range team.Players {
 											resp := new(response)
 											resp.Value = p.ID
@@ -505,7 +506,11 @@ func game(w http.ResponseWriter, r *http.Request) {
 											team.GameMap.RemovePlayer(*p.Position)
 										} else {
 											team.GameMap.RegeneratePosition(p)
-											team.UpdatePlayer(p.ID, p)
+
+											team.AddPlayer(p)
+											resp := new(response)
+											resp.FromTeam(team, p.ID, GameMapUpdate)
+											p.Conn.WriteJSON(resp)
 										}
 										team.UpdatePlayer(p.ID, p)
 									}
@@ -540,6 +545,29 @@ func game(w http.ResponseWriter, r *http.Request) {
 			conn.WriteJSON(map[string]string{"error": "Invalid request type"})
 		}
 		team.UpdatePlayer(player.ID, player)
+		isGameOver := true
+		for _, row := range *team.GameMap {
+			for _, colum := range row {
+				if colum == 1 {
+					isGameOver = false
+					break
+				}
+			}
+		}
+		if isGameOver {
+			team.State = models.Finished
+			for _, p := range team.Players {
+				p.Life = 0
+				team.AddPlayer(p)
+				resp := new(response)
+				resp.FromTeam(team, p.ID, GameOver)
+				err := p.Conn.WriteJSON(resp)
+				if err != nil {
+					continue
+				}
+			}
+
+		}
 
 		engine.Update(team.ID, team)
 	}

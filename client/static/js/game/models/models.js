@@ -1,5 +1,5 @@
 class Player {
-    constructor(id = '', nickname = '', x = 0, y = 0, avatar = '', life = 3) {
+    constructor(id = '', nickname = '', x = 0, y = 0, avatar = '', life = 0) {
         this.id = id;
         this.nickname = nickname;
         this.position = { x, y };
@@ -15,7 +15,7 @@ class Player {
         this.position = json.position || this.position;
         this.avatar = json.avatar || this.avatar;
         this.mapId = json.mapId || this.mapId;
-        this.life =json.life || this.life;
+        this.life = json.life || this.life;
         return this;
     }
 
@@ -26,7 +26,7 @@ class Player {
             position: this.position,
             avatar: this.avatar,
             mapId: this.mapId,
-            life : this.life
+            life: this.life
         }
     }
 }
@@ -65,11 +65,12 @@ class Team {
 }
 
 class Response {
-    constructor({ player = {}, team = {}, type = '', value = '' } = {}) {
+    constructor({ player = {}, team = {}, type = '', value = '', message = {} } = {}) {
         this.player = new Player().fromJSON(player);
         this.team = new Team().fromJSON(team);
         this.type = type;
         this.value = value
+        this.message = message
     }
 
     fromJSON(json = {}) {
@@ -78,6 +79,7 @@ class Response {
         this.player = new Player().fromJSON(json.player || {});
         this.type = json.type || this.type;
         this.value = json.value || this.value
+        this.message = json.message || this.message
         return this;
     }
 
@@ -86,7 +88,8 @@ class Response {
             player: this.player.object(),
             team: this.team.object(),
             type: this.type,
-            value: this.value
+            value: this.value,
+            message: this.message
         }
     }
 }
