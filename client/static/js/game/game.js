@@ -56,6 +56,19 @@ class Chat extends router.Component {
         }
     };
 
+    generateBooleanArray(number) {
+        if (number === 3) {
+            return [true, true, false];
+        } else if (number === 2) {
+            return [true, false, false];
+        } else if (number === 1) {
+            return [false, false, false];
+        } else {
+            // Handle other cases if needed
+            return [];
+        }
+    }
+
     render() {
         return createElement('div', { class: 'game-chat' }, [
             createElement('div', { class: 'chat-box' }, [
@@ -66,6 +79,7 @@ class Chat extends router.Component {
                     createElement('div', { class: 'content' }, [
                         createElement('div', { class: 'players-list' },
                             this.props.state.team.players.map(player => {
+                                const booleanArray = this.generateBooleanArray(player.life)
                                 return createElement('div', { class: 'player', id: player.id }, [
                                     createElement('i', { }, player.avatar),
                                     // createElement('img', { src: player.avatar, alt: player.nickname }),
@@ -73,7 +87,7 @@ class Chat extends router.Component {
                                     createElement('div', { class: 'player-name' }, player.nickname),
                                     createElement('div', { class: 'player-status' }, player.status),
                                     createElement('div', { class: 'player-life' },
-                                        [true, true, false].map((life, index) => {
+                                        booleanArray.map((life, index) => {
                                             return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
                                         })
                                     ),
