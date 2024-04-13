@@ -49,7 +49,7 @@ func (p *Player) LifeDown() bool {
 	p.Lock()
 	defer p.Unlock()
 	if p.Life > 0 {
-		p.Life--
+		p.Life = p.Life - 1
 	}
 	return p.Life == 0
 }

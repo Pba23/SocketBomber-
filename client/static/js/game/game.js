@@ -28,6 +28,7 @@ class Chat extends router.Component {
 
     handleInputChange(event) {
         this.props.disableControls()
+        console.log(event.target.value);
         this.setState({ newMessage: event.target.value });
     }
 
@@ -105,7 +106,11 @@ class Chat extends router.Component {
                             type: 'text',
                             placeholder: 'Type a message...'
                         }),
-                        createElement('button', { type: 'button', class: 'send', onClick: this.handleSendMessage.bind(this) }, 'Send'),
+                        createElement('button', {
+                            type: 'button', class: 'send', onClick: (event) => {
+                                this.handleSendMessage(event)
+                            }
+                        }, 'Send'),
                     ]),
                 ]),
             ]),
@@ -191,15 +196,19 @@ class Game extends router.Component {
         resp.fromJSON(game);
         this.setState(resp.object());
 
-
+        if (this.state.player && this.state.player.life <= 0) {
+            this.gameOver();
+        }
 
         if (this.state.team && this.state.team.state === 'playing' && this.state.player) {
+            this.startGameLoop();
             this.init();
         } else if (!this.state.team.id || !this.state.player.id) {
             this.removeState();
             this.redirectTo('/');
+        }else if (this.team.state === 'finished'){
+            this.gameOver('Game over! 🎉🎉🎉');
         }
-        this.startGameLoop();
     }
 
     onWebSocketMessage(event) {
@@ -217,7 +226,7 @@ class Game extends router.Component {
         const resp = new models.Response();
         resp.fromJSON(data);
 
-        const { type, team, player, value } = resp;
+        const { type, team, player, value, message } = resp;
 
         switch (type) {
             // case "updatePlayers":
@@ -239,6 +248,17 @@ class Game extends router.Component {
                 });
                 break;
             case "playerEliminated":
+                this.setState({
+                    player: {
+                        ...this.state.player,
+                        life: player.life
+                    },
+                    team: {
+                        ...this.state.team,
+                        players: team.players
+                    }
+                });
+                console.table(this.state.player);
                 this.handlePlayerElimination(player, value);
                 break;
             case "gameMapUpdate":
@@ -251,20 +271,21 @@ class Game extends router.Component {
                 });
                 break;
             case 'chat':
+                console.log('Chat message:', data.Message);
                 // Handle incoming chat messages
-                const newMessage = {
-                    Author: data.Message.Author, // Assuming the message contains author's information
-                    Content: data.Message.Content, // Extract the message content from the data
-                };
+                // const newMessage = {
+                //     Author: data.Message.Author, // Assuming the message contains author's information
+                //     Content: data.Message.Content, // Extract the message content from the data
+                // };
                 // Update the state to include the new chat message
                 this.setState({
                     messages: [
                         ...this.state.messages,
-                        newMessage
+                        message
                     ]
 
                 });
-                this.handleNewMessage(newMessage)
+                this.handleNewMessage(message)
                 break;
             // Add cases for other message types as needed
             // case "gameWaiting":
@@ -276,41 +297,47 @@ class Game extends router.Component {
             case "playerDead":
                 if (player.id === value) {
                     this.disableControls()
-
-                    // Create a new modal
-                    let modal = document.createElement('div');
-                    modal.style.position = "fixed";
-                    modal.style.zIndex = "1000";
-                    modal.style.left = "0";
-                    modal.style.top = "0";
-                    modal.style.backgroundColor = "red";
-                    modal.style.color = "white";
-                    modal.style.padding = "10px";
-                    modal.innerText = "You are dead! Game over for you! 🧨💥"
-
-                    // Create a new button
-                    let button = document.createElement('button');
-                    button.innerText = "Replay";
-                    addListener(button, "click", () => {
-                        this.removeState();
-                        this.redirectTo('/');
-                    });
-
-                    // Append the button to the modal
-                    modal.appendChild(button);
-
-                    // Append the modal to the body
-                    document.body.appendChild(modal);
+                    this.gameOver();
                 }
                 break;
-            // case "gameOver":
-            //     alert(message);
-            //     this.resetGame();
-            //     this.router.navigate("/");
-            //     break;
+            case "gameOver":
+                this.gameOver('Game over! 🎉🎉🎉');
+                break;
             default:
                 console.warn("Unknown message type:", type);
         }
+    }
+
+    gameOver(msg = 'You are dead! Game over for you! 🧨💥') {
+        let modal = createElement('div', { class: 'game-over' }, [
+            createElement('h1', { class: 'title' }, 'Game Over'),
+            createElement('p', { class: 'message' },msg),
+            createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
+        ]);
+        // Create a new modal
+        // let modal = document.createElement('div');
+        // modal.style.position = "fixed";
+        // modal.style.zIndex = "1000";
+        // modal.style.left = "0";
+        // modal.style.top = "0";
+        // modal.style.backgroundColor = "red";
+        // modal.style.color = "white";
+        // modal.style.padding = "10px";
+        // modal.innerText = "You are dead! Game over for you! 🧨💥"
+
+        // // Create a new button
+        // let button = document.createElement('button');
+        // button.innerText = "Replay";
+        // addListener(button, "click", () => {
+        //     this.removeState();
+        //     this.redirectTo('/');
+        // });
+
+        // Append the button to the modal
+        // modal.appendChild(button);
+
+        // Append the modal to the body
+        document.body.appendChild(modal);
     }
 
     handlePlayerElimination(player, value) {
@@ -332,18 +359,6 @@ class Game extends router.Component {
             console.log('Player eliminated:', value);
             // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
         }
-        this.setState({
-            team: {
-                ...this.state.team,
-                players: this.state.team.players.filter(p => {
-                    if (p.id === player.id) {
-                        p = player;
-                    }
-                    return p;
-                })
-
-            }
-        });
     }
 
     notifier(msg = 'You have been eliminated!', duration = 2000) {
@@ -418,10 +433,11 @@ class Game extends router.Component {
 
     handleNewMessage = (message) => {
         const container = document.querySelector('.messages');
+        console.log('New message:', message, container);
 
         container.appendChild(createElement('div', { class: 'message' }, [
-            createElement('div', { class: 'message-author' }, message.Author),
-            createElement('div', { class: 'message-content' }, message.Content),
+            createElement('div', { class: 'message-author' }, message.author),
+            createElement('div', { class: 'message-content' }, message.content),
         ]))
 
     };
@@ -433,7 +449,6 @@ class Game extends router.Component {
 
     handleChatInputBlur = (state) => {
         this.setState({ isChatInputFocused: false });
-        console.log(state, "www");
         this.activateControls(state); // Enable game controls
     };
 
@@ -457,7 +472,6 @@ class Game extends router.Component {
     }
 
     activateControls(noDeat = false) {
-        console.log(noDeat);
         if (noDeat) {
             addListener(window, "keydown", this.handleKeyDown);
         }
