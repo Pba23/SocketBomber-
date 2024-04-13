@@ -67,6 +67,19 @@ class WaitingRoom extends router.Component {
                 if (resp.team.state === 'ready') {
                 }
                 if (resp.team.state === 'playing') {
+                    const app = document.getElementById('app')
+                    const timer = document.getElementById('timer');
+                    const wrapperElement = document.querySelector('.wrapper');
+
+                    app.style.display = 'none'
+                    timer.style.display = 'block';
+                    wrapperElement.classList.add('active');
+
+                    setTimeout(() => {
+                        timer.style.display = 'none';
+                        app.style, display = 'none'
+                        wrapperElement.classList.remove('active');
+                    }, 10000);
                     this.redirectTo('/game');
                 }
             }
@@ -86,6 +99,7 @@ class WaitingRoom extends router.Component {
     removeState() {
         localStorage.removeItem('game');
     }
+
 
     render() {
 

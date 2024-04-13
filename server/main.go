@@ -237,14 +237,15 @@ const (
 	PlayerDead       ReqType = "playerDead"
 	PlaceBomb        ReqType = "placeBomb"
 	Playing          ReqType = "playing"
-	Waiting          ReqType = "ready"
+	Ready            ReqType = "ready"
 	Chat             ReqType = "chat"
 )
 
-var playerCount int
-var timerStarted bool
-var timeExpired bool
-var timerCh <-chan time.Time
+var (
+	playerCount  int
+	timerStarted bool
+	timerCh      <-chan time.Time
+)
 
 func waitingpage(w http.ResponseWriter, r *http.Request) {
 	type request struct {
@@ -307,6 +308,7 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 			if playerCount == 2 && !timerStarted {
 				timerCh = time.After(20 * time.Second)
 				timerStarted = true
+				
 
 				go func() {
 					<-timerCh
@@ -334,9 +336,19 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 					}
 					playerCount = 0
 					timerStarted = false
-					timeExpired = false
 					timerCh = nil
 				}()
+			}
+
+			if (timerStarted) {
+				resp := new(response)
+				resp.FromTeam(team, player.ID, Ready)
+				err := player.Conn.WriteJSON(resp)
+				if err != nil {
+					conn.Close()
+					team.Players[player.ID].Conn = nil
+					return
+				}
 			}
 
 			if len(team.Players) == models.MaxPlayers {
@@ -364,7 +376,6 @@ func waitingpage(w http.ResponseWriter, r *http.Request) {
 				}
 				playerCount = 0
 				timerStarted = false
-				timeExpired = false
 				timerCh = nil
 			}
 
