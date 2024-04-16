@@ -1,49 +1,5 @@
 package handlers
 
-import (
-	"bomberman/models"
-	"encoding/json"
-	"html"
-	"log"
-	"net/http"
-
-	"github.com/gorilla/websocket"
-)
-
-func Join(w http.ResponseWriter, r *http.Request) {
-
-	type request struct {
-		Nickname string `json:"nickname"`
-	}
-
-	var req request
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Failed to decode JSON body: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if req.Nickname == "" {
-		http.Error(w, "Nickname cannot be empty", http.StatusBadRequest)
-		return
-	}
-
-	player := models.NewPlayer(html.EscapeString(req.Nickname), &models.Position{X: 0, Y: 0}, &models.Team{}, &websocket.Conn{})
-
-	response := models.Player{
-		ID: player.ID,
-		Nickname: req.Nickname,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Println("Failed to encode response: ", err)
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	log.Println(response, "VALID Logged")
-}
-
 // inTeam := false
 
 // config.Engine.Range(func(key uuid.UUID, value *models.Team) bool {
