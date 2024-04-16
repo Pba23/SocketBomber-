@@ -71,13 +71,14 @@
     background: var(--color3);
     color: var(--color1);
     font-weight: bold;
+    font-size: 15px;
     cursor: pointer;
 }
 
 #join:hover {
     background: #76ABAEa1;
 }
-
+/* 
 .waiting-room {
     display: flex;
     flex-direction: column;
@@ -204,7 +205,6 @@
     height: 100%;
     justify-content: center;
     align-items: center;
-    /* Ajoutez cette ligne pour centrer le contenu de chaque cellule */
     background: var(--color5);
 }
 
@@ -428,21 +428,18 @@
     cursor: pointer;
 }
 
-/* Container for the chat component */
 .chat-container {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-/* Style for the chat messages area */
 .chat-messages {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
 }
 
-/* Individual chat message style */
 .chat-message {
     margin-bottom: 10px;
     padding: 5px;
@@ -450,7 +447,6 @@
     background-color: #f0f0f0;
 }
 
-/* Style for the user's own chat message */
 .own-message {
     margin-bottom: 10px;
     padding: 5px;
@@ -460,7 +456,6 @@
     align-self: flex-end;
 }
 
-/* Style for the chat input and send button */
 .chat-input-container {
     display: flex;
     align-items: center;
@@ -539,7 +534,6 @@
 
 }
 
-/* Loading screen styles */
 .loading-screen {
     position: fixed;
     top: 0;
@@ -670,4 +664,4 @@
     }
 }
 
-@include timer('.wrapper', 10s, 250px, #08C, '5px solid rgba(0,0,0,0.5)');
+@include timer('.wrapper', 10s, 250px, #08C, '5px solid rgba(0,0,0,0.5)'); */

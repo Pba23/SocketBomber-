@@ -31,6 +31,13 @@ class Player {
     }
 }
 
+class Position {
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
 class Team {
     constructor(id = '', name = '', state = '', players = [], map = [], bombs = []) {
         this.id = id;
@@ -65,32 +72,43 @@ class Team {
 }
 
 class Response {
-    constructor({ player = {}, team = {}, type = '', value = '', message = {} } = {}) {
-        this.player = new Player().fromJSON(player);
-        this.team = new Team().fromJSON(team);
+    constructor(id = '', nickname = '', avatar = '', life = 0, message = null, position = new Position(), newPosition = new Position(), team = new Team(), bomb = null, power = '', type = '') {
+        this.id = id;
+        this.nickname = nickname;
+        this.avatar = avatar;
+        this.life = life;
+        this.message = message;
+        this.position = position;
+        this.newPosition = newPosition;
+        this.team = team;
+        this.bomb = bomb;
+        this.power = power;
         this.type = type;
-        this.value = value
-        this.message = message
     }
 
-    fromJSON(json = {}) {
-        if (json === null) return this;
-        this.team = new Team().fromJSON(json.team || {});
-        this.player = new Player().fromJSON(json.player || {});
-        this.type = json.type || this.type;
-        this.value = json.value || this.value
-        this.message = json.message || this.message
+    fromJSON(json) {
+        for (let propName in json) {
+            if (json.hasOwnProperty(propName)) {
+                this[propName] = json[propName];
+            }
+        }
         return this;
     }
 
-    object() {
+    toObject() {
         return {
-            player: this.player.object(),
-            team: this.team.object(),
-            type: this.type,
-            value: this.value,
-            message: this.message
-        }
+            id: this.id,
+            nickname: this.nickname,
+            avatar: this.avatar,
+            life: this.life,
+            message: this.message,
+            position: this.position,
+            newPosition: this.newPosition,
+            team: this.team,
+            bomb: this.bomb,
+            power: this.power,
+            type: this.type
+        };
     }
 }
 

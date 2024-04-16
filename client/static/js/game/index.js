@@ -1,81 +1,83 @@
 import router from "../lib/index.js"
+import { ws } from "../utils/socket.js";
 import models from "./models/models.js";
 import ws from './websocket.js';
 const { createElement, } = router;
 
-// import WebSocket from 'ws';
-
 class Home extends router.Component {
     constructor(props, stateManager) {
-        super(props, stateManager);
+        super(props);
+        this.router = props.router;
+        this.stateManager = stateManager;
 
-        this.ws = ws
-        // localStorage.removeItem('game');
-        // const game = JSON.parse(localStorage.getItem('game'));
-
-        // resp.fromJSON(game || {});
-
-
-        const resp = new models.Response()
-        this.state = resp.object()
+        this.state = {
+            avatar: "",
+            bomb: null,
+            id: "",
+            life: 0,
+            message: null,
+            new_position: { x: 0, y: 0 },
+            nickname: "",
+            position: { x: 0, y: 0 },
+            power: "",
+            team: { id: "", name: "", map: [], players: [] },
+        };
     }
 
-    redirectTo = (path) => {
-        window.location.pathname = path;
+    componentDidMount() {
+        ws.onMessage(this.onMessage.bind(this));
     }
 
-    setState(newState) {
-        this.state = newState;
-        localStorage.setItem('game', JSON.stringify(newState));
-        // this.render();
+    componentWillUnmount() {
+        ws.onMessage(null);
     }
 
-    joinRoom = () => {
-        document.getElementById('newPlayerInput').setAttribute('disabled', 'disabled');
+    joinRoom(element) {
+        const input = document.getElementById('newPlayerInput')
+        input.setAttribute('disabled', 'disabled');
         document.getElementById('join').setAttribute('disabled', 'disabled');
 
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ type: 'join', nickname: this.state.player.nickname }));
-        } else {
-            console.error('WebSocket connection not initialized.');
+
+        const nickname = input.value.trim();
+        if (!nickname) {
+            alert('Please enter a nickname');
+            return;
         }
 
-        // fetch('/join', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({ nickname: this.state.player.nickname })
-        // })
-        //     .then(response => {
-        //         if (!response.ok) {
-        //             throw new Error('Network response was not ok');
-        //         }
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         console.log(data)
-        //         const game = new models.Response();
-        //         game.fromJSON({player: data});
-        //         this.setState(game.object())
-
-        //     })
-        //     .catch(error => {
-        //         console.error('Error:', error);
-        //         document.getElementById('newPlayerInput').removeAttribute('disabled');
-        //         document.getElementById('join').removeAttribute('disabled');
-        //     });
+        this.setState({ nickname });
+        ws.send({ type: 'join', nickname });
     }
 
-    handleInputChange = (event) => {
-        this.setState({ player: { nickname: event.target.value } });
+    onMessage(data) {
+        if (data.error) {
+            let inputElement = document.querySelector('input'); // replace 'input' with the correct selector for your input element
+            let joinElement = document.getElementById('join');
+            console.log(inputElement, joinElement);
+
+            if (inputElement && inputElement.hasAttribute('disabled')) {
+                inputElement.removeAttribute('disabled');
+            }
+
+            if (joinElement && joinElement.hasAttribute('disabled')) {
+                joinElement.removeAttribute('disabled');
+            }
+            alert(data.error)
+            return
+        }
+
+        const game = new models.Response();
+        game.fromJSON(data);
+        this.setState({ ...game.toObject() });
+        this.stateManager.setState({ ...game.toObject()});
+        
+        if (this.state.team.id && this.state.id) {
+            this.router.navigate('/waiting-room');
+        }
     }
+
+   
 
     render() {
-        if (this.state.player.id && this.state.team.id) {
-            this.redirectTo('/waiting-room');
-        }
-
         return (
             createElement('div', { class: 'game' }, [
                 createElement('h1', { class: 'title' }, 'Welcome to Bomberman Tournament'),
@@ -85,10 +87,9 @@ class Home extends router.Component {
                         type: 'text',
                         id: 'newPlayerInput',
                         placeholder: 'Choose a nickname',
-                        value: this.state.player.nickname,
-                        oninput: this.handleInputChange,
+                        value: '',
                     }),
-                    createElement('button', { onclick: this.joinRoom, id: "join" }, 'Join Room')
+                    createElement('button', { onclick: (element) => { this.joinRoom(element) }, id: "join" }, 'Join Room')
                 ])
             ])
         );

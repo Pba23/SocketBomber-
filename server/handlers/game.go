@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,9 +40,19 @@ func Game(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Failed to write message: "+err.Error(), http.StatusInternalServerError)
 				return
 			}
+			continue
 		}
 
 		if req.Type == models.Join {
+
+			if strings.TrimSpace(req.Nickname) == "" {
+				err := conn.WriteJSON(map[string]string{"error": "Nickname is required"})
+				if err != nil {
+					http.Error(w, "Failed to write message: "+err.Error(), http.StatusInternalServerError)
+					return
+				}
+				continue
+			}
 
 			is_InTeam := false
 			currentTeam := new(models.Team)
@@ -108,6 +119,34 @@ func Game(w http.ResponseWriter, r *http.Request) {
 					quit <- true
 					StartGame(currentTeam, make(chan bool))
 				}
+			}
+
+		} else if req.Type == models.CheckState {
+			team := config.Engine.Get(req.TeamId)
+			if team == nil {
+				err := conn.WriteJSON(map[string]string{"error": "Team not found"})
+				if err != nil {
+					return
+				}
+				return
+			}
+
+			player := team.GetPlayer(req.PlayerId)
+
+			if player == nil {
+				team.State = models.Finished
+			}
+
+			if player.IsDead() {
+				team.State = models.Finished
+			}
+
+			resp := new(models.Response)
+			resp.FromTeam(team, models.CheckState)
+
+			err := conn.WriteJSON(resp)
+			if err != nil {
+				return
 			}
 
 		} else {

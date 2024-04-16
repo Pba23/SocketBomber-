@@ -17,4 +17,5 @@ const (
 	Chat             ReqType = "chat"
 	PlaceFlame       ReqType = "placeFlame"
 	StartGame        ReqType = "startGame"
+	CheckState       ReqType = "checkState"
 )

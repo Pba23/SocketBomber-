@@ -1,92 +1,51 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
+import { ws } from "../utils/socket.js";
 
 const { createElement, appendChildren } = router;
 
 class WaitingRoom extends router.Component {
-    request = {
-        type: '',
-        teamId: '',
-        playerId: '',
-    }
-
     constructor(props, stateManager) {
-        super(props, stateManager);
-        this.state = {
-            firstRender: true,
-        }
-        const game = JSON.parse(localStorage.getItem('game')) || {};
+        super(props);
+        this.router = props.router;
+        this.stateManager = stateManager;
 
-        const resp = new models.Response()
-        resp.fromJSON(game);
-
-        this.setState(resp.object());
-
-        if (this.state.team && this.state.team.state === 'waiting' && this.state.player) {
-            // Initialisez le WebSocket ici, après que l'état ait été mis à jour
-            this.init();
-        } else if (this.state.team && this.state.team.state === 'playing') {
-            this.redirectTo('/game');
-        } else if (!this.state.team.id || !this.state.player.id) {
-            this.removeState();
-            this.redirectTo('/');
+        if (!this.stateManager.state.id) {
+            this.router.navigate('/');
         }
     }
 
-    init() {
-        if (!this.state.team || !this.state.player) {
-            console.log('Team is not defined yet');
-            return;
+    componentDidMount() {
+        ws.onMessage(this.onMessage.bind(this));
+    }
+
+    componentWillUnmount() {
+        ws.onMessage(null);
+    }
+
+    onMessage(data) {
+        if (data.error) {
+            alert(data.error);
+            this.router.navigate('/');
         }
-        const ws = new WebSocket(`ws://${window.location.host}/waitingroom`);
-        ws.onopen = () => {
-            ws.send(JSON.stringify({ type: 'join', teamId: this.state.team.id, playerid: this.state.player.id }));
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.error) {
-                    this.removeState();
-                    this.redirectTo('/');
-                    return;
-                }
-                const resp = new models.Response();
-                resp.fromJSON(data);
-                if (resp.player.id === this.state.player.id && resp.team.id === this.state.team.id) {
-                    this.setState(resp.object());
-                    const ul = document.querySelector('.players ul')
-                    ul.innerHTML = '';
-                    resp.team.players.forEach(player => {
-                        if (player.id !== this.state.player.id) {
-                            const li = createElement('li', { class: 'player' }, [
-                                createElement('img', { class: 'player-avatar', src: player.avatar }),
-                                createElement('span', { class: 'player-name' }, player.nickname),
-                            ]);
-                            ul.appendChild(li);
-                        }
-                    });
-                }
-                if (resp.team.state === 'ready') {
-                }
-                if (resp.team.state === 'playing') {
-                    this.countdown(10)
-                    this.redirectTo('/game');
-                }
-            }
+
+        const resp = new models.Response().fromJSON(data);
+
+        if (data.type === 'join') {
+            this.setState({ team: { ...this.state.team, players: resp.team.players } });
+        }
+
+        if (data.type === 'playing') {
+            this.setState({ team: { ...this.state.team, state: 'playing', map: resp.team.map } });
+            this.stateManager.setState({ ...this.state });
+            this.router.navigate('/game');
         }
     }
 
-    redirectTo = (path) => {
-        window.location.href = path;
+    update() {
+        // for all state changes this method will be called
     }
 
-    setState(newState, callback) {
-        this.state = { ...this.state, ...newState }
-        localStorage.setItem('game', JSON.stringify(this.state));
-        callback && callback();
-    }
-
-    removeState() {
-        localStorage.removeItem('game');
-    }
 
     countdown(duration) {
         const endTime = new Date().getTime() + (duration * 1000);
@@ -115,15 +74,16 @@ class WaitingRoom extends router.Component {
 
 
     render() {
-        const playerList = this.state.team && this.state.team.players ? this.state.team.players.map(player => {
-            if (player.id !== this.state.player.id) {
-                return createElement('li', { class: 'player' }, [
-                    createElement('img', { class: 'player-avatar', src: player.avatar }),
-                    createElement('span', { class: 'player-name' }, player.nickname),
-                ]);
-            }
-        }
-        ) : [];
+
+        // const playerList = this.state.team && this.state.team.players ? this.state.team.players.map(player => {
+        //     if (player.id !== this.state.player.id) {
+        //         return createElement('li', { class: 'player' }, [
+        //             createElement('img', { class: 'player-avatar', src: player.avatar }),
+        //             createElement('span', { class: 'player-name' }, player.nickname),
+        //         ]);
+        //     }
+        // }
+        // ) : [];
 
         return createElement('div', { class: 'waiting-room' }, [
             createElement('div', { class: 'team' }, [
@@ -142,7 +102,7 @@ class WaitingRoom extends router.Component {
                 ]),
             ]),
             createElement('div', { class: 'players' }, [
-                createElement('ul', { class: 'list' }, playerList),
+                // createElement('ul', { class: 'list' }, playerList)   ,
             ]),
             createElement('div', { id: 'countdown', class: 'countdown' }, '')
         ]);

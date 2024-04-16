@@ -26,11 +26,12 @@ type Response struct {
 		ID      uuid.UUID `json:"id"`
 		Name    string    `json:"name"`
 		Map     *Map      `json:"map"`
+		State   State     `json:"state"`
 		Players []struct {
 			Nickname string `json:"nickname"`
 			Avatar   string `json:"avatar"`
 		} `json:"players"`
-	}
+	} `json:"team"`
 	Bomb  *Bomb   `json:"bomb"`
 	Power string  `json:"power"`
 	Type  ReqType `json:"type"`
@@ -41,6 +42,7 @@ func (r *Response) FromTeam(team *Team, t ReqType) {
 	r.Team.Name = team.Name
 	r.Type = t
 	r.Team.Map = team.GameMap
+	r.Team.State = team.State
 	for _, p := range team.Players {
 		r.Team.Players = append(r.Team.Players, struct {
 			Nickname string `json:"nickname"`

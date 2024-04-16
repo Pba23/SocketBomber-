@@ -147,46 +147,20 @@ class Chat extends router.Component {
 //     createElement('button', { class: 'send' }, 'Send')
 // ]),
 
-class LoadingScreen extends router.Component {
-    render() {
-        return createElement('div', { class: 'loading-screen' }, [
-            createElement('div', { class: 'spinner' }, 'Loading...'), // You can customize the loading indicator
-        ]);
-    }
-}
+// class LoadingScreen extends router.Component {
+//     render() {
+//         return createElement('div', { class: 'loading-screen' }, [
+//             createElement('div', { class: 'spinner' }, 'Loading...'), // You can customize the loading indicator
+//         ]);
+//     }
+// }
 
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
-
         this.state = {
-            map: []
-        }
-
-        for (let i = 0; i < 20; i++) {
-            // const row = []
-            for (let j = 0; j < 20; j++) {
-                if (i == 0 || j == 0 || i == 20 - 1 || j == 20 - 1) {
-                    // m[i][j] = -1 // wall
-                    this.state.map.push('wall');
-                } else {
-                    this.state.map.push('block')
-                    // m[i][j] = 0 // empty
-                }
-            }
-        }
-
-        //     player: props?.state?.player || new models.Player().object(),
-        //     avatars: props.state?.avatars || avatathis.state = {
-        //     map: props?.state?.team?.map || new models.Team().object().map,
-        //     player: props?.state?.player || new models.Player().object(),
-        //     avatars: props.state?.avatars || avatars,
-        //     mapSize: props.state?.mapSize || 550,
-        //     cellSize: props.state?.cellSize || 0,
-        // }rs,
-        //     mapSize: props.state?.mapSize || 550,
-        //     cellSize: props.state?.cellSize || 0,
-        // }
+            map: props.state.team.map
+        };
     }
 
     render() {
@@ -203,32 +177,13 @@ class Map extends router.Component {
 
 
 class Game extends router.Component {
-    ws = null;
-
-    // Taille de la carte en pixels
     constructor(props, stateManager) {
-        super(props, stateManager);
-        const avatars = {}
+        super(props);
+        this.router = props.router;
+        this.stateManager = stateManager;
 
-        this.state.avatars
-        this.state = {
-            gameLoading: true,
-            firstRender: true,
-            avatars: avatars,
-            messages: [],
-            isChatInputFocused: false,
-            team: {
-                players: [
-                    {
-                        id: 'id_authentification_number_access',
-                        nickname: 'killa',
-                        avatar: 'avatar',
-                        status: 'state',
-                        life: 3,
-                        power: ''
-                    }
-                ]
-            }
+        if (!this.stateManager.state.id) {
+            this.router.navigate('/');
         }
     }
 
@@ -245,26 +200,6 @@ class Game extends router.Component {
     }
 }
 
-
-class Socket {
-    constructor(url, callback) {
-        this.ws = new WebSocket(`ws://${window.location.host}/gamesocket`);
-
-        callback(this.ws);
-    }
-
-    send(data) {
-        // console.log(data, this.ws)
-        this.ws.send(JSON.stringify(data));
-    }
-
-    onMessage(callback) {
-        this.ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            callback(data);
-        }
-    }
-}
 
 
 export default Game;
