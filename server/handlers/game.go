@@ -74,14 +74,12 @@ func Game(w http.ResponseWriter, r *http.Request) {
 					is_InTeam = true
 					// config.Engine.Update(team.ID, team)
 					currentTeam = team
-					log.Println(currentTeam.Players, "Player", is_InTeam)
 					return false
 				}
 				return true
 			})
 
 			if !is_InTeam {
-				log.Println("Creating new team")
 				team := models.NewTeam(fmt.Sprintf("Team %d", config.Engine.Size()+1), models.MaxPlayers)
 				newPlayer := models.NewPlayer(req.Nickname, &models.Position{}, team, conn)
 				team.AddPlayer(newPlayer)
@@ -94,14 +92,9 @@ func Game(w http.ResponseWriter, r *http.Request) {
 				config.Engine.Add(team.ID, team)
 			}
 
-			log.Println("Current", len(currentTeam.Players))
-
 			if currentTeam != nil {
-				log.Println("Current Team: ", currentTeam.Name)
-				log.Println(currentTeam.Players)
 
 				if len(currentTeam.Players) == 2 {
-					log.Println("2 Players")
 					PlayGame(currentTeam, quit)
 				}
 
@@ -182,20 +175,27 @@ func GamePlay(req *models.Request, conn *websocket.Conn) {
 		return
 	}
 
-	if !team.Start {
-		err := conn.WriteJSON(map[string]string{"error": "Game not started"})
-		if err != nil {
-			return
-		}
-		return
-	}
-
 	switch req.Type {
 	case models.Move:
+		if !team.Start {
+			err := conn.WriteJSON(map[string]string{"error": "Game not started"})
+			if err != nil {
+				return
+			}
+			return
+		}
 		utils.Move(req, conn, team, player)
 	case models.PlaceBomb:
+		if !team.Start {
+			err := conn.WriteJSON(map[string]string{"error": "Game not started"})
+			if err != nil {
+				return
+			}
+			return
+		}
 		utils.PlaceBomb(req, conn, team, player)
 	case models.Chat:
+		log.Println("Chat")
 		utils.Chat(req, conn, team, player)
 	default:
 		if conn != nil {
@@ -210,7 +210,6 @@ func GamePlay(req *models.Request, conn *websocket.Conn) {
 
 // StartGame starts the game after 10 seconds.
 func StartGame(team *models.Team, quit chan bool) {
-	log.Println("Game started")
 	go func() {
 		select {
 		case <-quit:
@@ -244,7 +243,6 @@ func StartGame(team *models.Team, quit chan bool) {
 
 // PlayGame plays the game.
 func PlayGame(team *models.Team, channel chan bool) {
-	log.Println("Game playing")
 	// Create a quit channel
 	quit := make(chan bool)
 

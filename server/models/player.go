@@ -40,7 +40,7 @@ func NewPlayer(nickname string, position *Position, team *Team, conn *websocket.
 		Conn:           conn,
 		LastBombPlaced: time.Now().Add(-4 * time.Second),
 		Life:           3,
-		Avatar: Avatars[len(team.Players)],
+		Avatar:         Avatars[len(team.Players)],
 	}
 }
 

@@ -40,6 +40,8 @@ class Home extends router.Component {
         const nickname = input.value.trim();
         if (!nickname) {
             alert('Please enter a nickname');
+            input.removeAttribute('disabled');
+            document.getElementById('join').removeAttribute('disabled');
             return;
         }
 

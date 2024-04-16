@@ -27,9 +27,11 @@ type Response struct {
 		Name    string    `json:"name"`
 		Map     *Map      `json:"map"`
 		State   State     `json:"state"`
+		Started bool      `json:"started"`
 		Players []struct {
-			Nickname string `json:"nickname"`
-			Avatar   string `json:"avatar"`
+			ID       uuid.UUID `json:"id"`
+			Nickname string    `json:"nickname"`
+			Avatar   string    `json:"avatar"`
 		} `json:"players"`
 	} `json:"team"`
 	Bomb  *Bomb   `json:"bomb"`
@@ -43,11 +45,14 @@ func (r *Response) FromTeam(team *Team, t ReqType) {
 	r.Type = t
 	r.Team.Map = team.GameMap
 	r.Team.State = team.State
+	r.Team.Started = team.Start
 	for _, p := range team.Players {
 		r.Team.Players = append(r.Team.Players, struct {
-			Nickname string `json:"nickname"`
-			Avatar   string `json:"avatar"`
+			ID       uuid.UUID `json:"id"`
+			Nickname string    `json:"nickname"`
+			Avatar   string    `json:"avatar"`
 		}{
+			ID:       p.ID,
 			Nickname: p.Nickname,
 			Avatar:   p.Avatar,
 		})

@@ -3,6 +3,7 @@ package utils
 import (
 	"bomberman/config"
 	"bomberman/models"
+	"log"
 
 	"github.com/gorilla/websocket"
 )
@@ -17,8 +18,8 @@ func Move(req *models.Request, Conn *websocket.Conn, team *models.Team, player *
 	// }
 
 	newPosition := &models.Position{
-		X: req.Position.X,
-		Y: req.Position.Y,
+		X: req.Position.X + player.Position.X,
+		Y: req.Position.Y + player.Position.Y,
 	}
 	p1, ok1 := team.Powers[*newPosition]
 	if ok1 {
@@ -36,10 +37,12 @@ func Move(req *models.Request, Conn *websocket.Conn, team *models.Team, player *
 	}
 
 	team.AddPlayer(player)
-
-	ok = team.GameMap.CanMove(player.Position, newPosition)
+	log.Println(player.Position, newPosition)
+	ok = team.GameMap.CanMove(newPosition, player.Position)
 	if !ok {
-		err := Conn.WriteJSON(map[string]string{"error": "Invalid move"})
+		log.Println("Invalid move")
+
+		err := Conn.WriteJSON(map[string]string{"command": "Invalid move"})
 		if err != nil {
 			return
 		}

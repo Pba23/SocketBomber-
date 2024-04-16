@@ -1,73 +1,53 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
+import { ws } from "../utils/socket.js";
 const { createElement, addListener, removeListeners } = router;
 
 class Chat extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
+        const resp = new models.Response().fromJSON(stateManager.state);
         this.state = {
-            messages: [], // Initialize an empty array to store chat messages
-            newMessage: ""
+            messages: [],
+            newMessage: '',
         };
+        this.state = { ...this.state, ...resp.toObject() };
+
     }
 
-    componentDidMount() {
-        // Add event listener to handle incoming chat messages
-        this.props.ws.onMessage(this.handleIncomingMessage);
-    }
+    handleSendMessage = () => {
+        const message_input = document.getElementById('newMessage')
 
-    componentWillUnmount() {
-        // Clean up by removing the event listener
-        this.props.ws.removeMessageListener(this.handleIncomingMessage);
-    }
+        if (message_input.value.trim() === '') {
+            return;
+        }
 
-    handleIncomingMessage = (message) => {
-        // Update state with the incoming chat message
-        this.setState({ messages: [...this.state.messages, message] });
+        const req = {
+            "playerId": this.state.id,
+            "teamId": this.state.team.id,
+            "nickname": this.state.nickname,
+            "message": {
+                "content": message_input.value,
+            },
+            "type": "chat"
+        }
+
+        message_input.value = '';
+        ws.send(req);
     };
 
-    handleInputChange(event) {
-        this.props.disableControls()
-        console.log(event.target.value);
-        this.setState({ newMessage: event.target.value });
-    }
-
-    handleSendMessage = (event) => {
-        // this.props.activateControls(this.props.state.player.life > 0)
-        event.preventDefault()
-        const inputElement = document.querySelector('.new-message');
-        const messageContent = inputElement.value.trim();
-
-        if (messageContent !== '') {
-            const chatMessage = {
-                type: 'chat',
-                teamId: this.props.state.team.id,
-                playerId: this.props.state.player.id,
-                message: {
-                    content: messageContent
-                }
-            };
-
-            // Send the chat message to the server via WebSocket
-            this.props.ws.send(chatMessage);
-
-            // Clear the input field after sending the message
-            inputElement.value = '';
-        }
-    };
-
-    generateBooleanArray(number) {
-        if (number === 3) {
-            return [true, true, true];
-        } else if (number === 2) {
-            return [true, true, false];
-        } else if (number === 1) {
-            return [true, false, false];
-        } else {
-            // Handle other cases if needed
-            return [false, false, false];
-        }
-    }
+    // generateBooleanArray(number) {
+    //     if (number === 3) {
+    //         return [true, true, true];
+    //     } else if (number === 2) {
+    //         return [true, true, false];
+    //     } else if (number === 1) {
+    //         return [true, false, false];
+    //     } else {
+    //         // Handle other cases if needed
+    //         return [false, false, false];
+    //     }
+    // }
 
     // <div id="chat">
     //         <div class="chat_header">
@@ -85,67 +65,21 @@ class Chat extends router.Component {
 
     render() {
         return createElement('div', { id: 'chat' }, [
-            createElement('div', { class: "chat_header"}, [
-                this.props.state.team.players.map(player => {
-                    const booleanArray = this.generateBooleanArray(player.life)
-                    return createElement('div', { class: 'player', id: player.id }, [
-                        createElement('i', {}, player.avatar),
-                        // createElement('img', { src: player.avatar, alt: player.nickname }),
-                        createElement('p', {}, player.nickname),
-                        createElement('div', { class: 'player-name' }, player.nickname),
-                        createElement('div', { class: 'player-status' }, player.status),
-                        createElement('div', { class: 'player-life' },
-                            booleanArray.map((life, index) => {
-                                return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
-                            })
-                        ),
-                    ]);
-                })
+            createElement('div', { class: 'chat_header' }, [
+                createElement('div', { class: 'player' }, '1'),
+                createElement('div', { class: 'player' }, '2'),
+                createElement('div', { class: 'player' }, '3'),
+                createElement('div', { class: 'player' }, '4'),
             ]),
-            createElement('div', { class: 'chat' }, [
-                createElement('div', { class: 'header' }, [
-                    createElement('div', { class: 'title' }, `Chat`),
-                    createElement('div', { class: 'content' }, [
-                        createElement('div', { class: 'messages' }, [
-                            this.props.state.messages.map((message, index) => (
-                                createElement('div', { key: index, class: 'message' }, [
-                                    createElement('div', { class: 'message-author' }, message.Author),
-                                    createElement('div', { class: 'message-content' }, message.Content),
-                                ])
-                            )),
-                        ]),
-                    ]),
-                ]),
-                createElement('div', { class: 'footer' }, [
-                    createElement('input', {
-                        class: 'new-message',
-                        value: this.state.newMessage,
-                        onInput: this.handleInputChange.bind(this),
-                        onFocus: this.props.handleChatInputFocus,
-                        onBlur: () => this.props.handleChatInputBlur(this.props.state.player.life > 0),
-                        type: 'text',
-                        placeholder: 'Type a message...'
-                    }),
-                    createElement('button', {
-                        type: 'button', class: 'send', onClick: (event) => {
-                            this.handleSendMessage(event)
-                        }
-                    }, 'Send'),
-                ]),
+            createElement('div', { id: 'chat_s' }),
+            createElement('div', { class: 'newMessage' }, [
+                createElement('input', { id: 'newMessage', type: 'text', value: '', oninput: '' }),
+                createElement('input', { id: 'ss-submit', type: 'button', value: 'Submit', onClick: () => { this.handleSendMessage() } }),
             ]),
         ]);
     }
 }
-// createElement('div', { class: 'messages' }, [
-//     createElement('div', { class: 'message' }, [
-//         createElement('div', { class: 'message-author' }, 'Author'),
-//         createElement('div', { class: 'message-content' }, 'Message content'),
-//     ]),
-// ]),
-// createElement('div', { class: 'footer' }, [
-//     createElement('input', { class: 'new-message', type: 'text', placeholder: 'Type a message...' }),
-//     createElement('button', { class: 'send' }, 'Send')
-// ]),
+
 
 // class LoadingScreen extends router.Component {
 //     render() {
@@ -157,20 +91,30 @@ class Chat extends router.Component {
 
 class Map extends router.Component {
     constructor(props, stateManager) {
-        super(props, stateManager);
-        console.log(props.state.team.map);
-        this.state = {
-            map: []
-        };
+        super(props);
+
+        const resp = new models.Response().fromJSON(stateManager.state);
+        this.state = resp;
     }
 
+    // componentDidMount() {
+
+    // }
+
+
+
     render() {
-        // console.log(this.state.map)
-        // const // Taille de la carte en pixels
-        // const 
+        const game_map = this.state.team.map;
+        const allElements = []
+        game_map.forEach((row, x) => {
+            row.forEach((cell, y) => {
+                const id = x * 20 + y;
+                allElements.push(createElement('div', { id: `${id}`, class: `cell ${cell}` }))
+            });
+        })
         return createElement('div', { id: 'map' }, [
-            this.state.map.map((value) => {
-                return createElement('div', { class: `cell ${value}`} )
+            allElements.map((element) => {
+                return element
             })
         ]);
     }
@@ -178,14 +122,209 @@ class Map extends router.Component {
 
 
 class Game extends router.Component {
+
+    players = {}
+
+
     constructor(props, stateManager) {
         super(props);
         this.router = props.router;
         this.stateManager = stateManager;
 
-        if (!this.stateManager.state.id) {
+        this.TIME_LIMIT = 10;
+        this.timePassed = 0;
+        this.timeLeft = this.TIME_LIMIT;
+        this.timerInterval = null;
+        this.animationFrameId = null;
+
+
+        // if (!this.stateManager.state.id) {
+        //     this.router.navigate('/');
+        // }
+
+        const resp = new models.Response().fromJSON(stateManager.state);
+        this.state = { ...this.state, ...resp.toObject() };
+
+        this.gameLoop = this.gameLoop.bind(this);
+        this.gameLoop();
+    }
+
+    gameLoop() {
+        this.UpdatePosition();
+
+        this.animationFrameId = requestAnimationFrame(this.gameLoop); // Loop this method
+    }
+
+    UpdatePosition() {
+        const keys = Object.keys(this.players);
+        keys.forEach((key) => {
+            const player = this.players[key];
+            if (player.position.x === player.new_position.x && player.position.y === player.new_position.y) {
+                return;
+            }
+            const id = player.position.x * 20 + player.position.y;
+            const cell = document.getElementById(`${id}`);
+            cell.classList.remove(player.avatar);
+            // cell.classList.add('cell');
+            player.position = player.new_position;
+            const new_id = player.position.x * 20 + player.position.y;
+            const new_cell = document.getElementById(`${new_id}`);
+            new_cell.classList.add(player.avatar);
+        });
+    }
+
+    disableControls() {
+        removeListeners(window, "keydown", this.handleKeyDown);
+    }
+
+    activateControls() {
+        addListener(window, "keydown", this.handleKeyDown);
+    }
+
+    handleKeyDown = (event) => {
+
+        const req = {
+            "playerId": this.state.id,
+            "teamId": this.state.team.id,
+            "nickname": this.state.nickname,
+            "position": {
+                "x": 0,
+                "y": 0
+            },
+            "type": "move"
+        }
+        // const move = { x: 0, y: 0 };
+
+        switch (event.key) {
+            case "ArrowUp":
+                req.position.x = -1;
+                break;
+            case "ArrowDown":
+                req.position.x = 1;
+                break;
+            case "ArrowLeft":
+                req.position.y = -1;
+                break;
+            case "ArrowRight":
+                req.position.y = 1;
+                break;
+            case " ":
+                // Handle other keys as needed
+                ws.send("placeBomb", {});
+                return;
+            default:
+                return;
+        }
+
+        // Send move to server
+        ws.send(req);
+    };
+
+    createElement() {
+        const element = document.createElement('div');
+        element.classList.add('base-timer');
+        const time = document.createElement('span');
+        time.id = 'base-timer-label';
+        time.classList.add('base-timer__label');
+        time.innerHTML = this.formatTime(this.timeLeft);
+        element.appendChild(time);
+        return [element, time];
+    }
+
+    startTimer() {
+        const [timer, time] = this.createElement();
+        const map = document.getElementById('map')
+        map.appendChild(timer);
+        this.timerInterval = setInterval(() => {
+            this.timePassed = this.timePassed += 1;
+            this.timeLeft = this.TIME_LIMIT - this.timePassed;
+            time.innerHTML = this.formatTime(this.timeLeft);
+
+            if (this.timeLeft === 0) {
+                console.log("Time's up!");
+                map.removeChild(timer);
+                clearTimeout(this.timerInterval);
+            }
+        }, 1000);
+    }
+
+    formatTime(time) {
+        const minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+
+        if (seconds < 10) {
+            seconds = `0${seconds}`;
+        }
+
+        return `${minutes}:${seconds}`;
+    }
+
+    componentDidMount() {
+        ws.onMessage(this.onMessage.bind(this));
+        const state = new models.Response().fromJSON(this.stateManager.state);
+        if (state.team.state === 'playing' && !state.team.started) {
+            console.log("START TIMER");
+            this.startTimer();
+        }
+    }
+
+    componentWillUnmount() {
+        ws.onMessage(null);
+        this.animationFrameId && cancelAnimationFrame(this.animationFrameId);
+        this.disableControls();
+    }
+
+    onMessage(data) {
+        if (data.error) {
+            alert(data.error);
             this.router.navigate('/');
         }
+
+        const resp = new models.Response().fromJSON(data);
+        console.log("RESPONSE", resp);
+        switch (resp.type) {
+            case 'move':
+                this.movePlayer(resp);
+                return;
+            case 'startGame':
+                this.StartGame(resp);
+                return;
+            case 'chat':
+                this.chatMessage(resp);
+                return;
+            default:
+                return;
+        }
+    }
+
+    movePlayer(data) {
+        console.log("MOVE PLAYER");
+        const player = this.players[data.id];
+        player.new_position = { x: data.position.x, y: data.position.y };
+    }
+
+
+    StartGame(data) {
+        const position = data.position;
+        const id = position.x * 20 + position.y;
+        const cell = document.getElementById(`${id}`);
+        cell.classList.add(data.avatar);
+        this.players[data.id] = { position: position, avatar: data.avatar, nickname: data.nickname, new_position: position }
+        this.activateControls();
+        return;
+    }
+
+    chatMessage(data) {
+        const chat_s = document.getElementById('chat_s');
+        const className = data.nickname === this.state.nickname ? 'message_other' : 'other';
+        // (data.id == this.state.id) ? 'message_other' : ''}`
+        console.log(className);
+        const message = createElement('div', { class: `message ${className}` }, [
+            createElement('div', { class: 'chat_message' }, data.message.content),
+            createElement('div', { class: 'message_name' }, data.nickname),
+        ]);
+
+        chat_s.appendChild(message);
     }
 
 
@@ -205,3 +344,8 @@ class Game extends router.Component {
 
 export default Game;
 
+
+
+// Usage
+// const timerComponent = 
+// timerComponent.startTimer();

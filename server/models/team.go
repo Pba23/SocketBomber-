@@ -15,7 +15,7 @@ const (
 	MaxPlayers        = 4
 )
 
-var Avatars = []string{"👾", "👻", "🤖", "👹", "☠️", "🕵️‍♀️"}
+var Avatars = []string{"a", "b", "c", "d"}
 
 // Rom represents a ROM file.
 type Team struct {

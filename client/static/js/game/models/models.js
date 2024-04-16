@@ -39,13 +39,14 @@ class Position {
 }
 
 class Team {
-    constructor(id = '', name = '', state = '', players = [], map = [], bombs = []) {
+    constructor(id = '', name = '', state = '', players = [], map = [], bombs = [], started = false) {
         this.id = id;
         this.name = name;
         this.state = state;
         this.players = players.map(player => new Player().fromJSON(player));
         this.map = map;
         this.bombs = bombs;
+        this.started = started;
     }
 
     fromJSON(json = {}) {
@@ -56,6 +57,7 @@ class Team {
         this.players = Array.isArray(json.players) ? json.players.map(player => new Player().fromJSON(player)) : this.players;
         this.map = json.map || this.map;
         this.bombs = json.bombs || this.bombs;
+        this.started = json.started || this.started;
         return this;
     }
 
@@ -66,7 +68,8 @@ class Team {
             state: this.state,
             players: this.players.map(player => player.object()),
             map: this.map,
-            bombs: this.bombs
+            bombs: this.bombs,
+            started: this.started
         }
     }
 }

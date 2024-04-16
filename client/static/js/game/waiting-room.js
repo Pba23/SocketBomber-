@@ -13,6 +13,8 @@ class WaitingRoom extends router.Component {
         if (!this.stateManager.state.id) {
             this.router.navigate('/');
         }
+        const resp = new models.Response().fromJSON(stateManager.state);
+        this.state = { ...this.state, ...resp };
     }
 
     componentDidMount() {
@@ -43,8 +45,26 @@ class WaitingRoom extends router.Component {
     }
 
     update() {
-        // for all state changes this method will be called
+        const rsp = new models.Response().fromJSON(this.state);
+
+        if (rsp.type === 'join') {
+            const playersul = document.getElementById('players_list');
+
+            if (playersul) {
+                playersul.innerHTML = '';
+                rsp.team.players.forEach(player => {
+                    if (player.id !== this.state.id) {
+                        const li = createElement('li', { class: 'player' }, [
+                            createElement('i', { class: 'player-avatar', src: player.avatar }),
+                            createElement('span', { class: 'player-name' }, player.nickname),
+                        ]);
+                        playersul.appendChild(li);
+                    }
+                });
+            }
+        }
     }
+
 
 
     countdown(duration) {
@@ -74,27 +94,19 @@ class WaitingRoom extends router.Component {
 
 
     render() {
+        const rsp = new models.Response().fromJSON(this.state);
 
-        // const playerList = this.state.team && this.state.team.players ? this.state.team.players.map(player => {
-        //     if (player.id !== this.state.player.id) {
-        //         return createElement('li', { class: 'player' }, [
-        //             createElement('img', { class: 'player-avatar', src: player.avatar }),
-        //             createElement('span', { class: 'player-name' }, player.nickname),
-        //         ]);
-        //     }
-        // }
-        // ) : [];
 
         return createElement('div', { class: 'waiting-room' }, [
             createElement('div', { class: 'team' }, [
-                createElement('h1', { class: 'team-name' }, this.state.team ? this.state.team.name : ''),
+                createElement('h1', { class: 'team-name' }, rsp.team.name || ''),
             ]),
             createElement('div', { class: 'header' }, [
                 createElement('div', { class: 'player' }, [
-                    createElement('img', { class: 'player-avatar', src: this.state.player ? this.state.player.avatar : '' }),
+                    createElement('i', { src: rsp.avatar, class: 'player-avatar' }),
                 ]),
                 createElement('span', { class: 'players-header' }, [
-                    createElement('h2', { class: 'player-name' }, `Nickname: ${this.state.player ? this.state.player.nickname : ''}`),
+                    createElement('h2', { class: 'player-name' }, `Nickname: ${rsp.nickname}`),
                     createElement('div', { class: 'waiting' }, [
                         createElement('h3', { class: 'players-header-title' }, 'waiting for players'),
                         createElement('i', { class: 'bx bx-loader bx-spin' })
@@ -102,11 +114,21 @@ class WaitingRoom extends router.Component {
                 ]),
             ]),
             createElement('div', { class: 'players' }, [
-                // createElement('ul', { class: 'list' }, playerList)   ,
+                createElement('ul', { id: 'players_list', class: 'list' },
+                    rsp.team.players.map(player => {
+                        if (player.id !== this.state.id) {
+                            return createElement('li', { class: 'player' }, [
+                                createElement('i', { class: 'player-avatar', src: player.avatar }),
+                                createElement('span', { class: 'player-name' }, player.nickname),
+                            ]);
+                        }
+                    })
+                )
             ]),
             createElement('div', { id: 'countdown', class: 'countdown' }, '')
         ]);
     }
+
 }
 
 export default WaitingRoom;
