@@ -10,27 +10,6 @@ class Home extends router.Component {
         super(props, stateManager);
 
         this.ws = ws
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {// Initialize WebSocket message handling
-            this.ws.onmessage = (event) => {
-                console.log('Message from server:', event.data);
-                if (this.state.player.id && this.state) {
-                    console.log("pseudo validated, ==> go to waiting room")
-                    // this.redirectTo('/waiting-room');
-                }
-                // Handle incoming messages from the server
-            };
-
-            // Handle WebSocket errors
-            this.ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-
-            // Handle WebSocket connection closed
-            this.ws.onclose = () => {
-                console.log('WebSocket connection closed.');
-            };
-        }
-
         // localStorage.removeItem('game');
         // const game = JSON.parse(localStorage.getItem('game'));
 

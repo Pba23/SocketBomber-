@@ -64,11 +64,11 @@ func (t *Team) GetPlayer(id uuid.UUID) *Player {
 }
 
 // Broadcast sends a message to all players.
-func (t *Team) Broadcast(responce *Response) {
+func (t *Team) Broadcast(response *Response) {
 	t.RLock()
 	defer t.RUnlock()
 	for _, player := range t.Players {
-		player.Send(responce)
+		player.Send(response)
 	}
 }
 

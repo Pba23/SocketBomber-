@@ -7,7 +7,12 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
-    console.log('Websocket Origin response from Server :', event.data);
+    const data = event.data
+    console.log('Response from Server :', data);
+    if (data.player.id && data.team.id) {
+        console.log("pseudo validated, ==> go to waiting room")
+        // this.redirectTo('/waiting-room');
+    }
 };
 
 ws.onerror = (error) => {
