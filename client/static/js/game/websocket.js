@@ -8,7 +8,6 @@ ws.onopen = () => {
 
 ws.onmessage = (event) => {
     console.log('Message from server:', event.data);
-    // Handle incoming messages from the server
 };
 
 ws.onerror = (error) => {
