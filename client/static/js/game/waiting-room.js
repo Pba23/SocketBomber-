@@ -115,7 +115,6 @@ class WaitingRoom extends router.Component {
 
 
     render() {
-
         const playerList = this.state.team && this.state.team.players ? this.state.team.players.map(player => {
             if (player.id !== this.state.player.id) {
                 return createElement('li', { class: 'player' }, [

@@ -1,5 +1,6 @@
 import router from "../lib/index.js"
 import models from "./models/models.js";
+import ws from './websocket.js';
 const { createElement, } = router;
 
 // import WebSocket from 'ws';
@@ -8,13 +9,31 @@ class Home extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
 
-        localStorage.removeItem('game');
-        const game = JSON.parse(localStorage.getItem('game'));
+        this.ws = ws
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {// Initialize WebSocket message handling
+            this.ws.onmessage = (event) => {
+                console.log('Message from server:', event.data);
+                // Handle incoming messages from the server
+            };
+
+            // Handle WebSocket errors
+            this.ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            // Handle WebSocket connection closed
+            this.ws.onclose = () => {
+                console.log('WebSocket connection closed.');
+            };
+        }
+
+        // localStorage.removeItem('game');
+        // const game = JSON.parse(localStorage.getItem('game'));
+
+        // resp.fromJSON(game || {});
+
 
         const resp = new models.Response()
-        resp.fromJSON(game || {});
-
-
         this.state = resp.object()
     }
 
@@ -31,27 +50,42 @@ class Home extends router.Component {
     joinRoom = () => {
         document.getElementById('newPlayerInput').setAttribute('disabled', 'disabled');
         document.getElementById('join').setAttribute('disabled', 'disabled');
-        fetch('/join', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ nickname: this.state.player.nickname })
-        })
-            .then(response => response.json())
-            .then(data => {
-                const game = new models.Response();
-                game.fromJSON(data);
-                this.setState(game.object());
-                if (this.state.player.id && this.state.team.id) {
-                    this.redirectTo('/waiting-room');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('newPlayerInput').removeAttribute('disabled');
-                document.getElementById('join').removeAttribute('disabled');
-            });
+
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'join', nickname: this.state.player.nickname }));
+        } else {
+            console.error('WebSocket connection not initialized.');
+        }
+
+        // fetch('/join', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({ nickname: this.state.player.nickname })
+        // })
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error('Network response was not ok');
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         console.log(data)
+        //         const game = new models.Response();
+        //         game.fromJSON({player: data});
+        //         this.setState(game.object())
+
+        //         if (this.state.player.id != "") {
+        //             console.log("pseudo validated, ==> go to waiting room")
+        //             // this.redirectTo('/waiting-room');
+        //         }
+        //     })
+        //     .catch(error => {
+        //         console.error('Error:', error);
+        //         document.getElementById('newPlayerInput').removeAttribute('disabled');
+        //         document.getElementById('join').removeAttribute('disabled');
+        //     });
     }
 
     handleInputChange = (event) => {
@@ -81,7 +115,6 @@ class Home extends router.Component {
         );
     }
 }
-
 
 import WaitingRoom from "./waiting-room.js";
 import Game from "./game.js";

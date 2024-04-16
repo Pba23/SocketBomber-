@@ -25,7 +25,7 @@ func main() {
 		}
 	})
 
-	// mux.HandleFunc("/join", handlers.Join)
+	mux.HandleFunc("POST /join", handlers.Join)
 
 	// mux.HandleFunc("/waitingroom", handlers.Waitingpage)
 
