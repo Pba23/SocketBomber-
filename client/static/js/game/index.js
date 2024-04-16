@@ -1,7 +1,6 @@
 import router from "../lib/index.js"
 import { ws } from "../utils/socket.js";
 import models from "./models/models.js";
-import ws from './websocket.js';
 const { createElement, } = router;
 
 class Home extends router.Component {

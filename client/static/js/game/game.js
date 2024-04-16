@@ -158,13 +158,14 @@ class Chat extends router.Component {
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props, stateManager);
+        console.log(props.state.team.map);
         this.state = {
-            map: props.state.team.map
+            map: []
         };
     }
 
     render() {
-        console.log(this.state.map)
+        // console.log(this.state.map)
         // const // Taille de la carte en pixels
         // const 
         return createElement('div', { id: 'map' }, [
