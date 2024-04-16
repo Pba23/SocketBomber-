@@ -1,0 +1,278 @@
+:root {
+  --sprite-sheet-explosion: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/explosion.png");
+  --sprite-sheet-bomb: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/bomb.png");
+  --custom-cursor: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/aim.png") 7 7, auto;
+}
+
+* {
+  cursor: var(--custom-cursor);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: gluten;
+  font-size: 16px;
+  color: #868188;
+}
+
+body,
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url(https://cdn.discordapp.com/attachments/1208174654309666917/1228150284275159150/starry-sky-stars-black-glitter-1195683-wallhere.com.jpg?ex=662aff15&is=66188a15&hm=a4eb37288e589ae33c1b7dff80a0d1fa1028dbf6b3c683c1c8a910c762078427&);
+  background-size: cover;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* #{
+  height: 100vh;
+  width: 100vw;
+} */
+#container {
+  position: relative;
+  display: grid;
+  grid-template-columns: 600px 1fr;
+  height: 500px;
+  gap: 10px;
+  z-index: 2;
+  top: 20px;
+}
+
+#map {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  background-color: white;
+
+  position: relative;
+}
+
+#chat {
+  display: grid;
+  grid-template-rows: 1fr 4fr 1fr;
+  gap: 10px;
+  width: 300px;
+  max-width: 400px;
+  background: red;
+}
+
+.cell {
+  background-size: contain;
+}
+
+.cell.wall {
+  background-image: url('/static/assets/spaceblocks/block1.svg');
+}
+
+
+#players,
+#messages {
+  overflow-y: auto;
+}
+
+.base-timer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.base-timer__label {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+
+
+/* .footer {
+    display: flex;
+    position: absolute;
+    flex-direction: column;
+    bottom: 0;
+    padding: 24px;
+} */
+
+.explosion {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  background: var(--sprite-sheet-explosion);
+  background-size: cover;
+  animation: animateExplosion 0.45s steps(17, end) forwards;
+  animation-iteration-count: 1;
+  z-index: 1;
+}
+
+.bomb {
+  position: absolute;
+  width: 40px;
+  /* Reduced from 80px */
+  height: 54px;
+  /* Reduced from 108px */
+  background: var(--sprite-sheet-bomb);
+  background-size: cover;
+  animation: animateBomb 0.45s steps(13, end) infinite;
+  z-index: 1;
+}
+
+@keyframes animateExplosion {
+  from {
+    background-position: 0px;
+  }
+
+  to {
+    background-position: -3740px;
+  }
+}
+
+@keyframes animateBomb {
+  from {
+    background-position: 0px;
+  }
+
+  to {
+    background-position: -1040px;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+
+#chat {
+  /* width: 360px; */
+  /* height: 480px; */
+  /* margin: calc(50vh - 240px) 0 0 calc(50vw - 180px); */
+  border: 1px solid silver;
+  max-width: calc(100vw - 40px);
+  font-family: "Montserrat", sans-serif;
+  position: relative;
+  background: white;
+}
+
+.chat_header {
+  display: flex;
+  /* padding: 15px; */
+  border-bottom: 5px solid #ff7f50;
+  color: #ff7f50;
+  /* height: 100px; */
+  /* margin-bottom: 8px; */
+  font-size: 14px;
+  background: #f0f0f0;
+}
+
+.chat_header div {
+  width: 25%;
+}
+
+/* .chat {
+    margin: 14px;
+    border: 1px solid #ff7f50;
+    padding: 8px;
+    width: 220px;
+    border-radius: 10px 10px 10px 0;
+    max-width: calc(100% - 48px);
+    font-size: 0.85em;
+    word-break: break-word
+  } */
+/* .chat_name {
+    text-transform: uppercase;
+    font-size: 0.75em;
+    margin: 4px 0 2px;
+  } */
+/* .chat_other {
+    border-radius: 10px 10px 0 10px;
+    margin-left: calc(100% - 249px);
+    border-color: grey;
+  } */
+#chat .newMessage {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: calc(100% - 20px);
+}
+
+#chat input[type="text"] {
+  width: calc(100% - 70px);
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid grey;
+  font-family: "Montserrat", sans-serif;
+}
+
+#chat #ss-submit {
+  width: 70px;
+  position: absolute;
+  box-sizing: border-box;
+  padding: 10px;
+  margin-left: -1px;
+  border: 1px solid grey;
+  font-family: "Montserrat", sans-serif;
+  cursor: pointer;
+}
+
+#chat #ss-submit:hover {
+  background: grey;
+  color: #fff;
+}
+
+#chat_s {
+  overflow-y: scroll;
+  max-height: 360px;
+}
+
+::-webkit-scrollbar {
+  width: 13px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 0 4px #fff;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ------------------------------------------------------------------ */
+
+
+@media (max-width: 950px) {
+  #container {
+    top: 5px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 4fr 1fr;
+    gap: 5px;
+  }
+
+  #map {
+    width: 600px;
+    height: 500px;
+  }
+
+  #chat {
+    width: 100%;
+    max-width: 600px;
+    height: 100px;
+    grid-template-columns: 1fr 4fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .newMessage {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 100px;
+  }
+
+  #chat input[type="text"] {
+    width: 100px;
+  }
+}

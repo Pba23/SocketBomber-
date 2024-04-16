@@ -1,4 +1,4 @@
-package utils
+package models
 
 type ReqType string
 
@@ -8,11 +8,13 @@ const (
 	GameMapUpdate    ReqType = "gameMapUpdate"
 	GameOver         ReqType = "gameOver"
 	BombExploded     ReqType = "bombExploded"
+	PowerFound       ReqType = "powerFound"
 	PlayerEliminated ReqType = "playerEliminated"
 	PlayerDead       ReqType = "playerDead"
 	PlaceBomb        ReqType = "placeBomb"
 	Playing          ReqType = "playing"
-	Ready          ReqType = "ready"
+	Ready            ReqType = "ready"
 	Chat             ReqType = "chat"
 	PlaceFlame       ReqType = "placeFlame"
+	StartGame        ReqType = "startGame"
 )

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="./timer.css">
+</head>
+
+<body>
+    <div id="container">
+        <div id="map">
+            <!-- Generate 400 divs for the map -->
+            <script>
+                for (let i = 0; i < 20; i++) {
+                    for (let j = 0; j < 20; j++) {
+                        if (i == 0 || j == 0 || i == 20 - 1 || j == 20 - 1) {
+                            // m[i][j] = -1 // wall
+                            document.write('<div class="cell wall"></div>');
+                        } else {
+                            document.write('<div class="cell"></div>');
+                            // m[i][j] = 0 // empty
+                        }
+                        console.log(i, j);
+                    }
+                }
+            </script>
+        </div>
+
+
+        <div id="chat">
+            <div class="chat_header">
+                <div class="player">1</div>
+                <div class="player">2</div>
+                <div class="player">3</div>
+                <div class="player">4</div>
+            </div>
+            <div id="chat_s"></div>
+            <div class="newMessage">
+                <input type="text" value="" oninput="">
+                <input id="ss-submit"  value="Submit" onClick="">
+            </div>
+        </div>
+    </div>
+    <script src="../script.js"></script>
+    <script src="./timer.js"></script>
+
+</body>
+
+</html>

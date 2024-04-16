@@ -25,9 +25,9 @@ func main() {
 		}
 	})
 
-	mux.HandleFunc("POST /join", handlers.Join)
+	// mux.HandleFunc("/join", handlers.Join)
 
-	mux.HandleFunc("/waitingroom", handlers.Waitingpage)
+	// mux.HandleFunc("/waitingroom", handlers.Waitingpage)
 
 	mux.HandleFunc("/gamesocket", handlers.Game)
 

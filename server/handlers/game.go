@@ -1,192 +1,234 @@
 package handlers
 
 import (
+	"bomberman/config"
 	"bomberman/models"
 	"bomberman/utils"
+	"fmt"
+	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
-var mutex = &sync.Mutex{}
+var (
+	Upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return r.URL.Path == "/gamesocket" || r.URL.Path == "/waitingroom"
+		},
+	}
+)
 
 func Game(w http.ResponseWriter, r *http.Request) {
-	type request struct {
-		PlayerId uuid.UUID `json:"playerId"`
-		TeamId   uuid.UUID `json:"teamId"`
-		Position struct {
-			X int `json:"x"`
-			Y int `json:"y"`
-		} `json:"position"`
-		Message struct {
-			Content string `json:"content"`
-		} `json:"message"`
-		Type utils.ReqType `json:"type"`
-	}
-
-	conn, err := utils.Upgrader.Upgrade(w, r, nil)
+	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to upgrade connection: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	for {
-		var req request
-		err := conn.ReadJSON(&req)
-		if err != nil {
-			conn.WriteJSON(map[string]string{"error": err.Error()})
-			return
-		}
+		req := &models.Request{}
 
-		team := utils.Engine.Get(req.TeamId)
-		if team == nil {
-			conn.WriteJSON(map[string]string{"error": "Team not found"})
-			return
-		}
-
-		if team.State != models.Playing {
-			conn.WriteJSON(map[string]string{"error": "Game not started or already finished"})
-			return
-		}
-		if !team.Start {
-			if !team.Start {
-				go func() {
-					time.Sleep(10 * time.Second) // wait for 10 seconds
-
-					mutex.Lock()
-
-					team.Start = true // set team.Start to true
-					mutex.Unlock()
-
-					// save team in engine
-					utils.Engine.Update(team.ID, team)
-				}()
+		if err := conn.ReadJSON(req); err != nil {
+			err = conn.WriteJSON(map[string]string{"error": "Failed to read message"})
+			if err != nil {
+				http.Error(w, "Failed to write message: "+err.Error(), http.StatusInternalServerError)
+				return
 			}
 		}
-		player := team.GetPlayer(req.PlayerId)
-		if player == nil {
-			conn.WriteJSON(map[string]string{"error": "Player not found"})
-			return
-		}
-		if req.Type == utils.Chat {
-			// Assuming your chat message has a "content" field
-			content := req.Message.Content
-			author := player.Nickname
-			// Broadcast the chat message to all players in the team
-			for _, p := range team.Players {
-				if p.Conn != nil {
-					resp := new(utils.Response)
-					resp.FromTeam(team, p.ID, utils.Chat)
-					resp.Message.Content = content // Set the chat message content
-					resp.Message.Author = author
-					err := p.Conn.WriteJSON(resp)
-					if err != nil {
-						continue
-					}
+
+		if req.Type == models.Join {
+
+			is_InTeam := false
+			currentTeam := new(models.Team)
+			// Create a quit channel
+			quit := make(chan bool)
+
+			config.Engine.Range(func(key uuid.UUID, team *models.Team) bool {
+				if team.State == models.Waiting {
+
+					newPlayer := models.NewPlayer(req.Nickname, &models.Position{}, team, conn)
+
+					team.AddPlayer(newPlayer)
+
+					response := &models.Response{}
+					response.FromTeam(team, models.Join)
+					response.FromPlayer(newPlayer)
+
+					team.Broadcast(response)
+					is_InTeam = true
+					// config.Engine.Update(team.ID, team)
+					currentTeam = team
+					log.Println(currentTeam.Players, "Player", is_InTeam)
+					return false
+				}
+				return true
+			})
+
+			if !is_InTeam {
+				log.Println("Creating new team")
+				team := models.NewTeam(fmt.Sprintf("Team %d", config.Engine.Size()+1), models.MaxPlayers)
+				newPlayer := models.NewPlayer(req.Nickname, &models.Position{}, team, conn)
+				team.AddPlayer(newPlayer)
+				response := &models.Response{}
+				response.FromTeam(team, models.Join)
+				response.FromPlayer(newPlayer)
+
+				team.Broadcast(response)
+				currentTeam = team
+				config.Engine.Add(team.ID, team)
+			}
+
+			log.Println("Current", len(currentTeam.Players))
+
+			if currentTeam != nil {
+				log.Println("Current Team: ", currentTeam.Name)
+				log.Println(currentTeam.Players)
+
+				if len(currentTeam.Players) == 2 {
+					log.Println("2 Players")
+					PlayGame(currentTeam, quit)
+				}
+
+				if len(currentTeam.Players) == models.MaxPlayers {
+					currentTeam.State = models.TeamPlaying
+
+					currentTeam.GameMap = models.NewMap(config.MapSize)
+					currentTeam.GameMap.GenerateGameTerrain(len(currentTeam.Players))
+
+					resp := new(models.Response)
+					resp.FromTeam(currentTeam, models.ReqType(models.TeamPlaying))
+
+					currentTeam.Broadcast(resp)
+
+					quit <- true
+					StartGame(currentTeam, make(chan bool))
 				}
 			}
-		} else if req.Type == utils.Join {
-			player.Conn = conn
-			if !team.Start {
-				continue
-			}
-		} else if req.Type == utils.Move {
-			if !team.Start {
-				continue
-			}
-			if player.IsDead() {
-				continue
-			}
-			newPositon := models.Position{}
-			newPositon.X = req.Position.X + player.Position.X
-			newPositon.Y = req.Position.Y + player.Position.Y
-			if power, ok := team.Powers[newPositon]; ok &&
-				(*team.GameMap)[newPositon.X][newPositon.Y] != 1 &&
-				(*team.GameMap)[newPositon.X][newPositon.Y] != -1 {
-				player.Powers = append(player.Powers, power)
-				delete(team.Powers, newPositon)
-				(*team.GameMap)[newPositon.X][newPositon.Y] = 0
-				team.AddPlayer(player)
-			}
-			if team.GameMap.CanMove(newPositon, *player.Position) {
-				team.GameMap.MovePlayer(*player.Position, newPositon, player.MapId)
-				player.Position.Update(newPositon.X, newPositon.Y)
 
-				for _, p := range team.Players {
-					resp := new(utils.Response)
-					resp.FromTeam(team, p.ID, utils.GameMapUpdate)
-					err := p.Conn.WriteJSON(resp)
-					if err != nil {
-						continue
-					}
-				}
-			} else {
-				conn.WriteJSON(map[string]string{"invalid": "Invalid move"})
-			}
-
-		} else if req.Type == utils.PlaceBomb {
-			if !team.Start {
-				continue
-			}
-			if player.IsDead() {
-				continue
-			}
-			player.Position.Lock()
-
-			ok, id := team.PlaceBomb(player.Position.X, player.Position.Y)
-			for _, p := range team.Players {
-				resp := new(utils.Response)
-				resp.FromTeam(team, p.ID, utils.PlaceBomb)
-				err := p.Conn.WriteJSON(resp)
-				if err != nil {
-					continue
-				}
-			}
-			if ok {
-				go utils.BombPower(team, player, id)
-			}
-			player.Position.Unlock()
-
-		} else if req.Type == utils.PlaceFlame {
-			if !team.Start {
-				continue
-			}
-			continue
-			// utils.FlamePower(team, player)
 		} else {
-			if !team.Start {
-				continue
-			}
-			conn.WriteJSON(map[string]string{"error": "Invalid request type"})
+			GamePlay(req, conn)
 		}
-		team.UpdatePlayer(player.ID, player)
-		isGameOver := true
-		for _, row := range *team.GameMap {
-			for _, colum := range row {
-				if colum == 1 {
-					isGameOver = false
-					break
-				}
-			}
-		}
-		if isGameOver {
-			team.State = models.Finished
-			for _, p := range team.Players {
-				p.Life = 0
-				team.AddPlayer(p)
-				resp := new(utils.Response)
-				resp.FromTeam(team, p.ID, utils.GameOver)
-				err := p.Conn.WriteJSON(resp)
-				if err != nil {
-					continue
-				}
-			}
+	}
+}
 
+func GamePlay(req *models.Request, conn *websocket.Conn) {
+	team := config.Engine.Get(req.TeamId)
+	if team == nil {
+		err := conn.WriteJSON(map[string]string{"error": "Team not found"})
+		if err != nil {
+			return
 		}
-
-		utils.Engine.Update(team.ID, team)
+		return
 	}
 
+	if team.State != models.TeamPlaying {
+		err := conn.WriteJSON(map[string]string{"error": "Game not started or already finished"})
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	player := team.GetPlayer(req.PlayerId)
+	if player == nil {
+		err := conn.WriteJSON(map[string]string{"error": "Player not found"})
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	if !team.Start {
+		err := conn.WriteJSON(map[string]string{"error": "Game not started"})
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	switch req.Type {
+	case models.Move:
+		utils.Move(req, conn, team, player)
+	case models.PlaceBomb:
+		utils.PlaceBomb(req, conn, team, player)
+	case models.Chat:
+		utils.Chat(req, conn, team, player)
+	default:
+		if conn != nil {
+			err := conn.WriteJSON(map[string]string{"error": "Invalid request type"})
+			if err != nil {
+				return
+			}
+			return
+		}
+	}
+}
+
+// StartGame starts the game after 10 seconds.
+func StartGame(team *models.Team, quit chan bool) {
+	log.Println("Game started")
+	go func() {
+		select {
+		case <-quit:
+			// Stop the goroutine
+			return
+		default:
+			// Wait for 10 seconds
+			time.Sleep(10 * time.Second)
+
+			team.StartGame()
+
+			positions := team.GameMap.GenerateStartingAreas(team.Players)
+
+			for i, player := range team.Players {
+				player.Position.Update(positions[i].X, positions[i].Y)
+
+				resp := new(models.Response)
+				resp.FromPlayer(player)
+
+				resp.FromPosition(player.Position.X, player.Position.Y)
+				resp.FromTeam(team, models.StartGame)
+
+				team.AddPlayer(player)
+				team.Broadcast(resp)
+			}
+
+			config.Engine.Update(team.ID, team)
+		}
+	}()
+}
+
+// PlayGame plays the game.
+func PlayGame(team *models.Team, channel chan bool) {
+	log.Println("Game playing")
+	// Create a quit channel
+	quit := make(chan bool)
+
+	go func() {
+		select {
+		case <-channel:
+			quit <- true
+			return
+		default:
+			time.Sleep(20 * time.Second)
+
+			team.State = models.TeamPlaying
+
+			team.GameMap = models.NewMap(config.MapSize)
+			team.GameMap.GenerateGameTerrain(len(team.Players))
+
+			resp := new(models.Response)
+			resp.FromTeam(team, models.ReqType(models.TeamPlaying))
+
+			team.Broadcast(resp)
+
+			StartGame(team, quit)
+		}
+
+	}()
 }
