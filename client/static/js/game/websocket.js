@@ -7,15 +7,15 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
-    console.log('Message from server:', event.data);
+    console.log('Websocket Origin response from Server :', event.data);
 };
 
 ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
+    console.error('Websocket Origin Error:', error);
 };
 
 ws.onclose = () => {
-    console.log('WebSocket connection closed.');
+    console.log('WebSocket Origin connection closed.');
 };
 
 // class Socket {

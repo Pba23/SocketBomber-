@@ -13,6 +13,10 @@ class Home extends router.Component {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {// Initialize WebSocket message handling
             this.ws.onmessage = (event) => {
                 console.log('Message from server:', event.data);
+                if (this.state.player.id && this.state) {
+                    console.log("pseudo validated, ==> go to waiting room")
+                    // this.redirectTo('/waiting-room');
+                }
                 // Handle incoming messages from the server
             };
 
@@ -76,10 +80,6 @@ class Home extends router.Component {
         //         game.fromJSON({player: data});
         //         this.setState(game.object())
 
-        //         if (this.state.player.id != "") {
-        //             console.log("pseudo validated, ==> go to waiting room")
-        //             // this.redirectTo('/waiting-room');
-        //         }
         //     })
         //     .catch(error => {
         //         console.error('Error:', error);
