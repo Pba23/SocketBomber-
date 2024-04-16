@@ -36,6 +36,16 @@ class Chat extends router.Component {
         ws.send(req);
     };
 
+    handleInputFocus = () => {
+        console.log('Input focused');
+        this.props.disableControls()
+    };
+
+    handleInputBlur = () => {
+        console.log('Input blurred');
+        this.props.activateControls()
+    };
+
     // generateBooleanArray(number) {
     //     if (number === 3) {
     //         return [true, true, true];
@@ -73,7 +83,7 @@ class Chat extends router.Component {
             ]),
             createElement('div', { id: 'chat_s' }),
             createElement('div', { class: 'newMessage' }, [
-                createElement('input', { id: 'newMessage', type: 'text', value: '', oninput: '' }),
+                createElement('input', { id: 'newMessage', type: 'text', value: '', oninput: '', onfocus: this.handleInputFocus, onblur: this.handleInputBlur }),
                 createElement('input', { id: 'ss-submit', type: 'button', value: 'Submit', onClick: () => { this.handleSendMessage() } }),
             ]),
         ]);
@@ -144,6 +154,7 @@ class Game extends router.Component {
 
         const resp = new models.Response().fromJSON(stateManager.state);
         this.state = { ...this.state, ...resp.toObject() };
+        this.state['isChatInputFocused'] = false;
 
         this.gameLoop = this.gameLoop.bind(this);
         this.gameLoop();
@@ -173,6 +184,17 @@ class Game extends router.Component {
         });
     }
 
+    // handleChatInputFocus = () => {
+    //     this.setState({ isChatInputFocused: true });
+    //     this.disableControls(); // Disable game controls
+    // };
+
+    // handleChatInputBlur = (state) => {
+    //     this.setState({ isChatInputFocused: false });
+    //     this.activateControls(state); // Enable game controls
+    // };
+
+
     disableControls() {
         removeListeners(window, "keydown", this.handleKeyDown);
     }
@@ -194,7 +216,6 @@ class Game extends router.Component {
             "type": "move"
         }
         // const move = { x: 0, y: 0 };
-
         switch (event.key) {
             case "ArrowUp":
                 req.position.x = -1;
@@ -209,9 +230,12 @@ class Game extends router.Component {
                 req.position.y = 1;
                 break;
             case " ":
+                req.type = "placeBomb"
+                break;
+            case "new Key":
                 // Handle other keys as needed
-                ws.send("placeBomb", {});
-                return;
+                req.type = "specific key"
+                break;
             default:
                 return;
         }
@@ -281,7 +305,7 @@ class Game extends router.Component {
         }
 
         const resp = new models.Response().fromJSON(data);
-        console.log("RESPONSE", resp);
+        // console.log("RESPONSE", resp);
         switch (resp.type) {
             case 'move':
                 this.movePlayer(resp);
@@ -292,15 +316,59 @@ class Game extends router.Component {
             case 'chat':
                 this.chatMessage(resp);
                 return;
+            case 'placeBomb':
+                this.placeBomb(resp)
+                return;
+            case 'placeBomb':
+                console.log('bomb Explosion')
+                // action logic
+                return;
+            case "placeFlame":
+                console.log("placeFlame")
+                return;
+            case 'bombExploded':
+                console.log('bomb Explosion')
+                // action logic
+                return;
+            case "powerFound":
+                console.log("powerFound")
+                return;
+            case "playerEliminated":
+                console.log("playerEliminated")
+                return;
+            case "playerDead":
+                console.log("playerDead")
+                return;
+            case "gameOver":
+                console.log("gameOver")
+                return;
             default:
                 return;
         }
     }
 
     movePlayer(data) {
-        console.log("MOVE PLAYER");
         const player = this.players[data.id];
         player.new_position = { x: data.position.x, y: data.position.y };
+    }
+
+    placeBomb(data) {
+        console.log(data)
+        const position = data.bomb.position;
+        const id = position.x * 20 + position.y;
+        const cell = document.getElementById(`${id}`);
+        cell.classList.add('bomb');
+    }
+
+    bombExplosion(data) {
+    }
+
+    removeBomb(data) {
+        console.log(data)
+        const position = data.bomb.position;
+        const id = position.x * 20 + position.y;
+        const cell = document.getElementById(`${id}`);
+        cell.classList.remove('bomb');
     }
 
 
@@ -318,7 +386,7 @@ class Game extends router.Component {
         const chat_s = document.getElementById('chat_s');
         const className = data.nickname === this.state.nickname ? 'message_other' : 'other';
         // (data.id == this.state.id) ? 'message_other' : ''}`
-        console.log(className);
+        // console.log(className);
         const message = createElement('div', { class: `message ${className}` }, [
             createElement('div', { class: 'chat_message' }, data.message.content),
             createElement('div', { class: 'message_name' }, data.nickname),
@@ -327,6 +395,12 @@ class Game extends router.Component {
         chat_s.appendChild(message);
     }
 
+    handlePlayerDead() {
+    }
+
+    gameOver() {
+        console.log("Game over for You")
+    }
 
     render() {
         // if (this.state.gameLoading) {
@@ -340,11 +414,7 @@ class Game extends router.Component {
     }
 }
 
-
-
 export default Game;
-
-
 
 // Usage
 // const timerComponent = 

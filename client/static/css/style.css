@@ -85,6 +85,13 @@ body,
   background-image: url('/static/assets/avatars/d.png');
 }
 
+.cell.bomb{
+  height: 20px;
+  width: 20px;
+  background: var(--sprite-sheet-bomb);
+  /* background-image: url('/static/assets/powers/bomb.jpg'); */
+}
+
 
 #players,
 #messages {
@@ -132,17 +139,17 @@ body,
   z-index: 1;
 }
 
-.bomb {
+/* .bomb {
   position: absolute;
   width: 40px;
-  /* Reduced from 80px */
   height: 54px;
-  /* Reduced from 108px */
   background: var(--sprite-sheet-bomb);
   background-size: cover;
   animation: animateBomb 0.45s steps(13, end) infinite;
   z-index: 1;
-}
+} */
+/* Reduced from 108px */
+/* Reduced from 80px */
 
 @keyframes animateExplosion {
   from {

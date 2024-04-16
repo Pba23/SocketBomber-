@@ -11,14 +11,10 @@ import (
 )
 
 func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team, player *models.Player) {
-	log.Println("PlaceBomb")
 	if player.LastBombPlaced.After(time.Now().Add(4*time.Second)) && player.Powers != models.PowerUps[2] {
 		log.Println("PlaceBomb 1", player.LastBombPlaced.After(time.Now().Add(4*time.Second)))
 		return
 	}
-
-	log.Println("PlaceBomb 2")
-
 	// player.Lock()
 
 	resp := new(models.Response)
@@ -29,7 +25,6 @@ func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team,
 	team.Broadcast(resp)
 
 	// player.Unlock()
-	log.Println("print")
 
 	player.LastBombPlaced = time.Now()
 	go func() {
