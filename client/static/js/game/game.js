@@ -220,6 +220,10 @@ class Game extends router.Component {
     //     this.setState({ isChatInputFocused: false });
     //     this.activateControls(state); // Enable game controls
     // };
+    redirectTo = (path, clear = true) => {
+        // this.removeState();
+        window.location.pathname = path;
+    }
 
 
     disableControls() {
@@ -227,7 +231,10 @@ class Game extends router.Component {
     }
 
     activateControls() {
-        addListener(window, "keydown", this.handleKeyDown);
+        const player = this.stateManager.state
+        if (player.life > 0) {
+            addListener(window, "keydown", this.handleKeyDown);
+        }
     }
 
     handleKeyDown = (event) => {
@@ -412,7 +419,6 @@ class Game extends router.Component {
         setTimeout(() => {
             // bombElement.classList.remove('explosion');
             bombElement.className = 'cell';
-
             bombElement.style.transition = initialTransition;
             bombElement.style.animationDuration = initialAnimationDuration;
             bombElement.style.transform = initialTransform;
@@ -429,7 +435,7 @@ class Game extends router.Component {
     playerAttacked(data) {
         const player = this.stateManager.state
         // reduce life of the player
-        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life > 0) {
+        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life >= 0) {
             this.playerEliminationNotification(data.id)
             const playerContainer = document.getElementById(`${data.id}-life`);
             const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
@@ -440,7 +446,7 @@ class Game extends router.Component {
             // let playerLife = document.querySelector('.player-life i.full:last-child')
 
         } else {
-            if (data.life > 0) {
+            if (data.life >= 0) {
                 const playerContainer = document.getElementById(`${data.id}-life`);
                 const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
                 const lastChild = listOfLife[listOfLife.length - 1];
@@ -525,13 +531,12 @@ class Game extends router.Component {
             const notificationToPlayer = createElement('div', { class: 'message message_other' }, [
                 createElement('div', { class: 'chat_message' }, "Game Over For You, you've been killed"),
                 createElement('div', { class: 'game-over' }, [
-                    createElement('h1', { class: 'title' }, 'Game Over'),
-                    createElement('p', { class: 'message' }, "Game Over"),
                     createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
                 ]),
                 createElement('div', { class: 'message_name' }, 'Game Server')
             ]);
             chatContainer.appendChild(notificationToPlayer)
+            this.componentWillUnmount()
         } else {
             const notificationToTeam = createElement('div', { class: 'message other' }, [
                 createElement('div', { class: 'chat_message' }, `${data.nickname} is dead`),
@@ -540,6 +545,7 @@ class Game extends router.Component {
             chatContainer.appendChild(notificationToTeam)
             console.log(chatContainer)
         }
+
     }
 
     render() {

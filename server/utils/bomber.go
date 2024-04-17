@@ -3,6 +3,7 @@ package utils
 import (
 	"bomberman/config"
 	"bomberman/models"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,7 +11,11 @@ import (
 )
 
 func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team, player *models.Player) {
-	if player.LastBombPlaced.After(time.Now().Add(4*time.Second)) && player.Powers != models.PowerUps[2] {
+	fmt.Println("last bomb placed time", player.LastBombPlaced)
+	fmt.Println("new bomb positionning time", time.Now())
+	fmt.Println("time difference", player.LastBombPlaced.After(time.Now().Add(10*time.Second)))
+	if player.LastBombPlaced.After(time.Now().Add(10*time.Second)) && player.Powers != models.PowerUps[2] {
+		fmt.Println("bomb should not be placed")
 		// log.Println("PlaceBomb 1", player.LastBombPlaced.After(time.Now().Add(4*time.Second)))
 		return
 	}
@@ -41,7 +46,7 @@ func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team,
 				response.FromTeam(team, models.PlayerEliminated)
 			}
 			team.Broadcast(response)
-			team.AddPlayer(deadPlayer)
+			// team.AddPlayer(deadPlayer)
 		}
 
 		go func() {
