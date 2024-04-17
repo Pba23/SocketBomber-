@@ -96,14 +96,13 @@ class WaitingRoom extends router.Component {
     render() {
         const rsp = new models.Response().fromJSON(this.state);
 
-
         return createElement('div', { class: 'waiting-room' }, [
             createElement('div', { class: 'team' }, [
                 createElement('h1', { class: 'team-name' }, rsp.team.name || ''),
             ]),
             createElement('div', { class: 'header' }, [
                 createElement('div', { class: 'player' }, [
-                    createElement('i', { src: rsp.avatar, class: 'player-avatar' }),
+                    createElement('img', { src: `static/assets/avatars/${rsp.avatar}.png`, class: 'player-avatar' }),
                 ]),
                 createElement('span', { class: 'players-header' }, [
                     createElement('h2', { class: 'player-name' }, `Nickname: ${rsp.nickname}`),

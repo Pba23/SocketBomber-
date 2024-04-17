@@ -83,21 +83,22 @@ class Chat extends router.Component {
     // ]),
 
     render() {
-        console.log(this.props);
         const playersObj = this.props.stateManager.state.team.players
+        const listOfPlayers = this.props.state.players
+        console.log(this.props.state.life)
+        // listOfPlayers.map(player => {
+        //     console.log(player);
+        // })
         return createElement('div', { id: 'chat' }, [
             createElement('div', { class: 'chat_header' }, [
                 playersObj.map(player => {
-                    const booleanArray = this.generateBooleanArray(player.life)
-                    return createElement('div', { class: 'player', id: player.id }, [
-                        createElement('i', {}, player.avatar),
+                    return createElement('div', { class: 'player', id: `${player.id}-life` }, [
                         createElement('img', { src: `/static/assets/avatars/${player.avatar}.png`, alt: player.nickname }),
                         createElement('p', {}, player.nickname),
-                        createElement('div', { class: 'player-name' }, player.nickname),
                         createElement('div', { class: 'player-status' }, player.status),
                         createElement('div', { class: 'player-life' }, [
-                            booleanArray.map((life, index) => {
-                                return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
+                            [true, true, true].map((life, index) => {
+                                return createElement('i', { class: `bx bxs-bomb ${life ? 'lifefull' : 'lifeempty'}` }, '');
                             })
                         ]),
                     ]);
@@ -178,6 +179,7 @@ class Game extends router.Component {
         const resp = new models.Response().fromJSON(stateManager.state);
         this.state = { ...this.state, ...resp.toObject() };
         this.state['isChatInputFocused'] = false;
+        this.state['listOfPlayers'] = this.players
 
         this.gameLoop = this.gameLoop.bind(this);
         this.gameLoop();
@@ -399,9 +401,7 @@ class Game extends router.Component {
         const initialTransition = bombElement.style.transition;
         const initialAnimationDuration = bombElement.style.animationDuration;
         const initialTransform = bombElement.style.transform;
-
         const randomDegs = Math.round(Math.random() * 360)
-
         bombElement.className = "explosion"
         bombElement.style.transition = "unset"
         bombElement.style.transform = `rotate(${randomDegs}deg)`
@@ -418,27 +418,26 @@ class Game extends router.Component {
         // reduce life of the player
         if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life > 0) {
             this.playerEliminationNotification(data.id)
-            const playerContainer = document.getElementById(`${data.id}`);
-            const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+            const playerContainer = document.getElementById(`${data.id}-life`);
+            const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
             const lastChild = listOfLife[listOfLife.length - 1];
-            lastChild.classList.remove('full')
-            lastChild.classList.add('empty')
+            lastChild.classList.remove('lifefull')
+            lastChild.classList.add('lifeempty')
             // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
-            console.log(lastChild)
-            let playerLife = document.querySelector('.player-life i.full:last-child')
+            // let playerLife = document.querySelector('.player-life i.full:last-child')
 
         } else {
             if (data.life > 0) {
-                const playerContainer = document.getElementById(`${data.id}`);
-                const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+                const playerContainer = document.getElementById(`${data.id}-life`);
+                const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
                 const lastChild = listOfLife[listOfLife.length - 1];
-                lastChild.classList.remove('full')
-                lastChild.classList.add('empty')
+                lastChild.classList.remove('lifefull')
+                lastChild.classList.add('lifeempty')
                 // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
-                console.log(lastChild)
+                // console.log(lastChild)
 
-                let playerLife = document.querySelector('.player-life i.full:last-child')
-                console.log(playerLife)
+                // let playerLife = document.querySelector('.player-life i.full:last-child')
+                // console.log(playerLife)
                 // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
             }
         }
@@ -446,6 +445,22 @@ class Game extends router.Component {
 
     // FUNCTION SHOWING SAID Player is attacked
     playerEliminationNotification(data) {
+        console.log("Player Xnickname hitted by bomb ", data)
+        // Create a new notification
+        const chatContainer = document.getElementById('chat_s')
+        console.log(chatContainer)
+        const notification = createElement('div', { class: 'message message_other'}, [
+            createElement('div', { class: 'chat_message'}, "You've been killed"),
+            createElement('div', { class: 'message_name'}, 'Game Server')
+        ]);
+        chatContainer.appendChild(notification)
+        console.log(chatContainer)
+        
+        // Remove the notification after 2 seconds
+        // const out = setTimeout(() => {
+        //     removeChild(notification);
+        //     clearTimeout(out);
+        // }, 2000);
     }
 
     removeExplosion(data) {

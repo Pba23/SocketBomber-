@@ -293,11 +293,11 @@
     margin: 0 2px;
 }
 
-.player-life i.full {
+.player-life i.lifefull {
     background: #00ff00;
 }
 
-.player-life i.empty {
+.player-life i.lifeempty {
     background: #ff0000;
 }
 
