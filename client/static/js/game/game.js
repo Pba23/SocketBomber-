@@ -138,13 +138,14 @@ class Map extends router.Component {
 
     render() {
         const game_map = this.state.team.map;
-        const allElements = []
-        game_map.forEach((row, x) => {
-            row.forEach((cell, y) => {
-                const id = x * 20 + y;
-                allElements.push(createElement('div', { id: `${id}`, class: `cell ${cell}` }))
-            });
-        })
+        const allElements = Object.values(this.props.elementMAp)
+        // game_map.forEach((row, x) => {
+        //     row.forEach((cell, y) => {
+        //         const id = x * 20 + y;
+        //         this.props.elementMAp[id] = cell;
+        //         allElements.push(createElement('div', { id: `${id}`, class: `cell ${cell}` }))
+        //     });
+        // })
         return createElement('div', { id: 'map' }, [
             allElements.map((element) => {
                 return element
@@ -157,7 +158,7 @@ class Map extends router.Component {
 class Game extends router.Component {
 
     players = {}
-    elementMAp = []
+    elementMAp = {}
 
 
     constructor(props, stateManager) {
@@ -179,7 +180,13 @@ class Game extends router.Component {
         const resp = new models.Response().fromJSON(stateManager.state);
         this.state = { ...this.state, ...resp.toObject() };
         this.state['isChatInputFocused'] = false;
-        this.state['listOfPlayers'] = this.players
+        resp.team.map.forEach((row, x) => {
+            row.forEach((cell, y) => {
+                const id = x * 20 + y;
+                this.elementMAp[id] = createElement('div', { id: `${id}`, class: `cell ${cell}` });
+                // allElements.push()
+            });
+        })
 
         this.gameLoop = this.gameLoop.bind(this);
         this.gameLoop();
@@ -199,12 +206,11 @@ class Game extends router.Component {
                 return;
             }
             const id = player.position.x * 20 + player.position.y;
-            const cell = document.getElementById(`${id}`);
+            const cell = this.elementMAp[id];
             cell.classList.remove(player.avatar);
-            // cell.classList.add('cell');
             player.position = player.new_position;
             const new_id = player.position.x * 20 + player.position.y;
-            const new_cell = document.getElementById(`${new_id}`);
+            const new_cell = this.elementMAp[new_id];
             new_cell.classList.add(player.avatar);
         });
     }
@@ -379,7 +385,7 @@ class Game extends router.Component {
     placeBomb(data) {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
-        const cell = document.getElementById(`${id}`);
+        const cell = this.elementMAp[id];
         cell.classList.add('bomb');
     }
 
@@ -389,7 +395,7 @@ class Game extends router.Component {
         impacts.forEach(impact => {
             const position = impact;
             const id = position.x * 20 + position.y;
-            const cell = document.getElementById(`${id}`);
+            const cell = this.elementMAp[id]
             this.explodeBomb(cell);
         })
     }
@@ -404,13 +410,24 @@ class Game extends router.Component {
         const randomDegs = Math.round(Math.random() * 360)
         bombElement.className = "explosion"
         bombElement.style.transition = "unset"
+        bombElement.style.animationDuration = `${450}ms`
         bombElement.style.transform = `rotate(${randomDegs}deg)`
-        requestAnimationFrame(() => {
+
+        setTimeout(() => {
+            // bombElement.classList.remove('explosion');
             bombElement.className = 'cell';
+
             bombElement.style.transition = initialTransition;
             bombElement.style.animationDuration = initialAnimationDuration;
             bombElement.style.transform = initialTransform;
-        });
+
+        }, 450);
+        // requestAnimationFrame(() => {
+        //     // bombElement.className = 'cell';
+        //     // bombElement.style.transition = initialTransition;
+        //     // bombElement.style.animationDuration = initialAnimationDuration;
+        //     // bombElement.style.transform = initialTransform;
+        // });
     }
 
     playerAttacked(data) {
@@ -464,22 +481,22 @@ class Game extends router.Component {
     }
 
     removeExplosion(data) {
-        const impacts = data.bomb.impact
-        impacts.forEach(impact => {
-            const position = impact;
-            const id = position.x * 20 + position.y;
-            const cell = document.getElementById(`${id}`);
-            cell.classList.remove('bomb');
-            cell.classList.remove('explosion');
-            cell.classList.remove('block');
-            cell.classList.add('empty');
-        })
+        // const impacts = data.bomb.impact
+        // impacts.forEach(impact => {
+        //     const position = impact;
+        //     const id = position.x * 20 + position.y;
+        //     const cell = this.elementMAp[id]
+        //     cell.classList.remove('bomb');
+        //     cell.classList.remove('explosion');
+        //     cell.classList.remove('block');
+        //     cell.classList.add('empty');
+        // })
     }
 
     StartGame(data) {
         const position = data.position;
         const id = position.x * 20 + position.y;
-        const cell = document.getElementById(`${id}`);
+        const cell = this.elementMAp[id]
         cell.classList.add(data.avatar);
         this.players[data.id] = { position: position, avatar: data.avatar, nickname: data.nickname, new_position: position }
         this.activateControls();

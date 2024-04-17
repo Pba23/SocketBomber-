@@ -43,7 +43,7 @@ func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team,
 		}
 
 		go func() {
-			time.Sleep(time.Duration(2) * time.Second)
+			time.Sleep(time.Duration(1) * time.Second)
 			// resp.FromTeam(team, models.BombRemoved)
 			team.RemoveExplosion(resp.Bomb)
 			config.Engine.Update(team.ID, team)
