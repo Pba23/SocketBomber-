@@ -46,6 +46,7 @@ body,
   background-color: white;
 
   position: relative;
+  height: 460px;
 }
 
 #chat {
@@ -59,6 +60,8 @@ body,
 
 .cell {
   background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .cell.wall {
@@ -70,10 +73,12 @@ body,
 }
 
 .cell.a{
+  background-size: 20px 20px !important;
   background-image: url('/static/assets/avatars/a.png');
 }
 
 .cell.b{
+  background-size: 9px 20px !important;
   background-image: url('/static/assets/avatars/b.png');
 }
 
@@ -132,24 +137,21 @@ body,
 } */
 
 .explosion {
-  position: absolute;
-  width: 220px;
-  height: 220px;
+  /* position: absolute; */
+  width: 20px;
+  height: 20px;
   background: var(--sprite-sheet-explosion);
   background-size: cover;
   animation: animateExplosion 0.45s steps(17, end) forwards;
   animation-iteration-count: 1;
-  z-index: 1;
+  /* z-index: 1; */
 }
 
 .bomb {
-  position: absolute;
-  width: 40px;
-  height: 54px;
+  width: 18px;
+  height: 23px;
   background: var(--sprite-sheet-bomb);
-  background-size: cover;
-  animation: animateBomb 0.45s steps(13, end) infinite;
-  z-index: 1;
+  background-size: cover !important;
 }
 /* Reduced from 108px */
 /* Reduced from 80px */
@@ -160,19 +162,10 @@ body,
   }
 
   to {
-    background-position: -3740px;
+    background-position: -300px;
   }
 }
 
-@keyframes animateBomb {
-  from {
-    background-position: 0px;
-  }
-
-  to {
-    background-position: -1040px;
-  }
-}
 
 /* ------------------------------------------------------------------ */
 

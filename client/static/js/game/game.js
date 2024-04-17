@@ -156,6 +156,7 @@ class Map extends router.Component {
 class Game extends router.Component {
 
     players = {}
+    elementMAp = []
 
 
     constructor(props, stateManager) {
@@ -377,17 +378,39 @@ class Game extends router.Component {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
         const cell = document.getElementById(`${id}`);
-        cell.classList.add('bombplaced');
+        cell.classList.add('bomb');
     }
 
     bombExplosion(data) {
+        console.log(data);
         const impacts = data.bomb.impact
         impacts.forEach(impact => {
             const position = impact;
             const id = position.x * 20 + position.y;
             const cell = document.getElementById(`${id}`);
-            cell.classList.add('bombexplosion');
+            this.explodeBomb(cell);
         })
+    }
+
+    explodeBomb(bombElement) {
+        if (bombElement.className === "explosion") return
+
+        // Store initial properties
+        const initialTransition = bombElement.style.transition;
+        const initialAnimationDuration = bombElement.style.animationDuration;
+        const initialTransform = bombElement.style.transform;
+
+        const randomDegs = Math.round(Math.random() * 360)
+
+        bombElement.className = "explosion"
+        bombElement.style.transition = "unset"
+        bombElement.style.transform = `rotate(${randomDegs}deg)`
+        requestAnimationFrame(() => {
+            bombElement.className = 'cell';
+            bombElement.style.transition = initialTransition;
+            bombElement.style.animationDuration = initialAnimationDuration;
+            bombElement.style.transform = initialTransform;
+        });
     }
 
     playerAttacked(data) {
@@ -431,8 +454,8 @@ class Game extends router.Component {
             const position = impact;
             const id = position.x * 20 + position.y;
             const cell = document.getElementById(`${id}`);
-            cell.classList.remove('bombexplosion');
-            cell.classList.remove('bombplaced');
+            cell.classList.remove('bomb');
+            cell.classList.remove('explosion');
             cell.classList.remove('block');
             cell.classList.add('empty');
         })
