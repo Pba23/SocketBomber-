@@ -84,11 +84,7 @@ class Chat extends router.Component {
 
     render() {
         const playersObj = this.props.stateManager.state.team.players
-        const listOfPlayers = this.props.state.players
-        console.log(this.props.state.life)
-        // listOfPlayers.map(player => {
-        //     console.log(player);
-        // })
+        // console.log(this.props)
         return createElement('div', { id: 'chat' }, [
             createElement('div', { class: 'chat_header' }, [
                 playersObj.map(player => {
@@ -363,7 +359,7 @@ class Game extends router.Component {
                 this.playerAttacked(resp)
                 return;
             case "playerDead":
-                console.log("playerDead\n", resp)
+                this.gameOver(resp)
                 return;
             case "gameOver":
                 console.log("gameOver\n", resp)
@@ -466,13 +462,13 @@ class Game extends router.Component {
         // Create a new notification
         const chatContainer = document.getElementById('chat_s')
         console.log(chatContainer)
-        const notification = createElement('div', { class: 'message message_other'}, [
-            createElement('div', { class: 'chat_message'}, "You've been killed"),
-            createElement('div', { class: 'message_name'}, 'Game Server')
+        const notification = createElement('div', { class: 'message message_other' }, [
+            createElement('div', { class: 'chat_message' }, "You've been hitted"),
+            createElement('div', { class: 'message_name' }, 'Game Server')
         ]);
         chatContainer.appendChild(notification)
         console.log(chatContainer)
-        
+
         // Remove the notification after 2 seconds
         // const out = setTimeout(() => {
         //     removeChild(notification);
@@ -519,8 +515,31 @@ class Game extends router.Component {
     handlePlayerDead() {
     }
 
-    gameOver() {
-        console.log("Game over for You")
+    gameOver(data) {
+        console.log(" hitted by bomb ", data)
+        const player = this.stateManager.state
+        console.log(player)
+        // Create a new notification
+        const chatContainer = document.getElementById('chat_s')
+        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id) {
+            const notificationToPlayer = createElement('div', { class: 'message message_other' }, [
+                createElement('div', { class: 'chat_message' }, "Game Over For You, you've been killed"),
+                createElement('div', { class: 'game-over' }, [
+                    createElement('h1', { class: 'title' }, 'Game Over'),
+                    createElement('p', { class: 'message' }, "Game Over"),
+                    createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
+                ]),
+                createElement('div', { class: 'message_name' }, 'Game Server')
+            ]);
+            chatContainer.appendChild(notificationToPlayer)
+        } else {
+            const notificationToTeam = createElement('div', { class: 'message other' }, [
+                createElement('div', { class: 'chat_message' }, `${data.nickname} is dead`),
+                createElement('div', { class: 'message_name' }, 'Game Server')
+            ]);
+            chatContainer.appendChild(notificationToTeam)
+            console.log(chatContainer)
+        }
     }
 
     render() {
