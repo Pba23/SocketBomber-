@@ -377,6 +377,7 @@ class Game extends router.Component {
             cell.classList.remove('bombexplosion');
             cell.classList.remove('bombplaced');
             cell.classList.remove('block');
+            cell.classList.add('empty');
         })
     }
 
