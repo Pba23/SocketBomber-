@@ -55,7 +55,7 @@ class WaitingRoom extends router.Component {
                 rsp.team.players.forEach(player => {
                     if (player.id !== this.state.id) {
                         const li = createElement('li', { class: 'player' }, [
-                            createElement('i', { class: 'player-avatar', src: player.avatar }),
+                            createElement('img', { class: 'player-avatar', src: `static/assets/avatars/${player.avatar}.png` }),
                             createElement('span', { class: 'player-name' }, player.nickname),
                         ]);
                         playersul.appendChild(li);
@@ -118,7 +118,7 @@ class WaitingRoom extends router.Component {
                     rsp.team.players.map(player => {
                         if (player.id !== this.state.id) {
                             return createElement('li', { class: 'player' }, [
-                                createElement('i', { class: 'player-avatar', src: player.avatar }),
+                                createElement('img', { class: 'player-avatar', src: `static/assets/avatars/${player.avatar}.png` }),
                                 createElement('span', { class: 'player-name' }, player.nickname),
                             ]);
                         }

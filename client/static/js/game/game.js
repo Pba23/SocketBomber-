@@ -46,18 +46,18 @@ class Chat extends router.Component {
         this.props.activateControls()
     };
 
-    // generateBooleanArray(number) {
-    //     if (number === 3) {
-    //         return [true, true, true];
-    //     } else if (number === 2) {
-    //         return [true, true, false];
-    //     } else if (number === 1) {
-    //         return [true, false, false];
-    //     } else {
-    //         // Handle other cases if needed
-    //         return [false, false, false];
-    //     }
-    // }
+    generateBooleanArray(number) {
+        if (number === 3) {
+            return [true, true, true];
+        } else if (number === 2) {
+            return [true, true, false];
+        } else if (number === 1) {
+            return [true, false, false];
+        } else {
+            // Handle other cases if needed
+            return [false, false, false];
+        }
+    }
 
     // <div id="chat">
     //         <div class="chat_header">
@@ -73,13 +73,35 @@ class Chat extends router.Component {
     //         </div>
     //     </div>
 
+
+
+    // [
+    //     createElement('div', { class: 'player' }, '1'),
+    //     createElement('div', { class: 'player' }, '2'),
+    //     createElement('div', { class: 'player' }, '3'),
+    //     createElement('div', { class: 'player' }, '4'),
+    // ]),
+
     render() {
+        console.log(this.props);
+        const playersObj = this.props.stateManager.state.team.players
         return createElement('div', { id: 'chat' }, [
             createElement('div', { class: 'chat_header' }, [
-                createElement('div', { class: 'player' }, '1'),
-                createElement('div', { class: 'player' }, '2'),
-                createElement('div', { class: 'player' }, '3'),
-                createElement('div', { class: 'player' }, '4'),
+                playersObj.map(player => {
+                    const booleanArray = this.generateBooleanArray(player.life)
+                    return createElement('div', { class: 'player', id: player.id }, [
+                        createElement('i', {}, player.avatar),
+                        createElement('img', { src: `/static/assets/avatars/${player.avatar}.png`, alt: player.nickname }),
+                        createElement('p', {}, player.nickname),
+                        createElement('div', { class: 'player-name' }, player.nickname),
+                        createElement('div', { class: 'player-status' }, player.status),
+                        createElement('div', { class: 'player-life' },
+                            booleanArray.map((life, index) => {
+                                return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
+                            })
+                        ),
+                    ]);
+                }),
             ]),
             createElement('div', { id: 'chat_s' }),
             createElement('div', { class: 'newMessage' }, [
@@ -329,7 +351,7 @@ class Game extends router.Component {
                 this.removeExplosion(resp)
                 return;
             case "playerEliminated":
-                console.log("playerEliminated\n", resp)
+                this.playerAttacked(resp)
                 return;
             case "playerDead":
                 console.log("playerDead\n", resp)
@@ -366,6 +388,11 @@ class Game extends router.Component {
             const cell = document.getElementById(`${id}`);
             cell.classList.add('bombexplosion');
         })
+    }
+
+    playerAttacked(data) {
+        console.log("player attacked", data)
+        // reduce life of the player
     }
 
     removeExplosion(data) {
