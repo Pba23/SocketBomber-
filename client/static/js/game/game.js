@@ -319,28 +319,29 @@ class Game extends router.Component {
             case 'placeBomb':
                 this.placeBomb(resp)
                 return;
-            case 'placeBomb':
-                console.log('bomb Explosion')
-                // action logic
-                return;
             case "placeFlame":
-                console.log("placeFlame")
+                console.log("placeFlame\n", resp)
                 return;
             case 'bombExploded':
-                console.log('bomb Explosion')
-                // action logic
+                this.bombExplosion(resp)
                 return;
             case "powerFound":
-                console.log("powerFound")
+                console.log("powerFound\n", resp)
+                this.removeBomb(resp)
+                return;
                 return;
             case "playerEliminated":
-                console.log("playerEliminated")
+                console.log("playerEliminated\n", resp)
                 return;
             case "playerDead":
-                console.log("playerDead")
+                console.log("playerDead\n", resp)
                 return;
             case "gameOver":
-                console.log("gameOver")
+                console.log("gameOver\n", resp)
+                return;
+            case 'moreAction':
+                console.log('More Action ...\n', resp)
+                // action logic
                 return;
             default:
                 return;
@@ -353,14 +354,20 @@ class Game extends router.Component {
     }
 
     placeBomb(data) {
-        console.log(data)
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
         const cell = document.getElementById(`${id}`);
-        cell.classList.add('bomb');
+        cell.classList.add('bombplaced');
     }
 
     bombExplosion(data) {
+        const impacts = data.bomb.impact
+        impacts.forEach(impact => {
+            const position = impact;
+            const id = position.x * 20 + position.y;
+            const cell = document.getElementById(`${id}`);
+            cell.classList.add('bombexplosion');
+        })
     }
 
     removeBomb(data) {
@@ -368,9 +375,8 @@ class Game extends router.Component {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
         const cell = document.getElementById(`${id}`);
-        cell.classList.remove('bomb');
+        cell.classList.remove('bombplaced');
     }
-
 
     StartGame(data) {
         const position = data.position;

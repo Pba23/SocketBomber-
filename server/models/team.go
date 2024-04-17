@@ -74,7 +74,13 @@ func (t *Team) Broadcast(response *Response) {
 
 func (T *Team) ExplodeBomb(bomb *Bomb) []string {
 	deadPlayers := []string{}
-	deadPlayers = bomb.Explode(T.GameMap)
+	resp := new(Response)
+	resp.FromBomb(bomb.Position.X, bomb.Position.Y, bomb.Power)
+	deadPlayers = bomb.Explode(T.GameMap, T.Players, resp)
+	
+	resp.FromTeam(T, BombExploded)
+	// fmt.Println(resp)
+	T.Broadcast(resp)
 	// T.Bombs = append(T.Bombs[:i], T.Bombs[i+1:]...)
 	return deadPlayers
 }

@@ -83,6 +83,10 @@ func (r *Response) FromBomb(x, y int, power string) {
 	r.Bomb = bomb
 }
 
+func (r *Response) FromImpact(posiX, posiY int) {
+	r.Bomb.Impact = append(r.Bomb.Impact, Position{X: posiX, Y: posiY})
+}
+
 func (r *Response) FromPower(x, y int, power string) {
 	r.Power = power
 	r.Position.X = x
