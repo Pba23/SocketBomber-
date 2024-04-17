@@ -95,11 +95,11 @@ class Chat extends router.Component {
                         createElement('p', {}, player.nickname),
                         createElement('div', { class: 'player-name' }, player.nickname),
                         createElement('div', { class: 'player-status' }, player.status),
-                        createElement('div', { class: 'player-life' },
+                        createElement('div', { class: 'player-life' }, [
                             booleanArray.map((life, index) => {
                                 return createElement('i', { class: `bx bxs-bomb ${life ? 'full' : 'empty'}` }, '');
                             })
-                        ),
+                        ]),
                     ]);
                 }),
             ]),
@@ -391,8 +391,38 @@ class Game extends router.Component {
     }
 
     playerAttacked(data) {
-        console.log("player attacked", data)
+        const player = this.stateManager.state
         // reduce life of the player
+        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life > 0) {
+            this.playerEliminationNotification(data.id)
+            const playerContainer = document.getElementById(`${data.id}`);
+            const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+            const lastChild = listOfLife[listOfLife.length - 1];
+            lastChild.classList.remove('full')
+            lastChild.classList.add('empty')
+            // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+            console.log(lastChild)
+            let playerLife = document.querySelector('.player-life i.full:last-child')
+
+        } else {
+            if (data.life > 0) {
+                const playerContainer = document.getElementById(`${data.id}`);
+                const listOfLife = playerContainer.querySelectorAll('.player-life i.full');
+                const lastChild = listOfLife[listOfLife.length - 1];
+                lastChild.classList.remove('full')
+                lastChild.classList.add('empty')
+                // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+                console.log(lastChild)
+
+                let playerLife = document.querySelector('.player-life i.full:last-child')
+                console.log(playerLife)
+                // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+            }
+        }
+    }
+
+    // FUNCTION SHOWING SAID Player is attacked
+    playerEliminationNotification(data) {
     }
 
     removeExplosion(data) {
