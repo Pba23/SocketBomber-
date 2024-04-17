@@ -360,7 +360,7 @@ class Game extends router.Component {
             case 'bombExploded':
                 this.bombExplosion(resp)
                 return;
-            case "powerFound":
+            case ""powerFound":
                 this.removeExplosion(resp)
                 return;
             case "playerEliminated":
