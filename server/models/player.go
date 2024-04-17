@@ -307,13 +307,17 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			}
 		}
 	}
-	fmt.Println(resp)
-	
-	for _, power := range powerFound {
+
+	if len(powerFound) > 0 {
+		for _, power := range powerFound {
+			resp.FromTeam(team, PowerFound)
+			position := new(Position)
+			position.Update(power.X, power.Y)
+			resp.FromPower(power.X, power.Y, powers[*position])
+			team.Broadcast(resp)
+		}
+	} else {
 		resp.FromTeam(team, PowerFound)
-		position := new(Position)
-		position.Update(power.X, power.Y)
-		resp.FromPower(power.X, power.Y, powers[*position])
 		team.Broadcast(resp)
 	}
 
