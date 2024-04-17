@@ -148,7 +148,7 @@ func (m *Map) CanMove(pos *Position, old *Position) bool {
 // 	(*m)[pos.X][pos.Y] = 0
 // }
 
-var PowerUps = []string{"speed", "fireflame", "doublebomb"}
+var PowerUps = []string{"flash", "fire", "lindworm"}
 
 // GeneratePowerUp generates a power up on the map.
 func (m *Map) GeneratePowerUps() map[Position]string {

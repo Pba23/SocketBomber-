@@ -360,8 +360,8 @@ class Game extends router.Component {
             case 'bombExploded':
                 this.bombExplosion(resp)
                 return;
-            case ""powerFound":
-                this.removeExplosion(resp)
+            case "powerFound":
+                this.powerFound(resp)
                 return;
             case "playerEliminated":
                 this.playerAttacked(resp)
@@ -441,7 +441,7 @@ class Game extends router.Component {
 
         frameId = requestAnimationFrame(step);
     }
- 
+
     playerAttacked(data) {
         const player = this.stateManager.state
         // reduce life of the player
@@ -492,17 +492,13 @@ class Game extends router.Component {
         // }, 2000);
     }
 
-    removeExplosion(data) {
-        // const impacts = data.bomb.impact
-        // impacts.forEach(impact => {
-        //     const position = impact;
-        //     const id = position.x * 20 + position.y;
-        //     const cell = this.elementMAp[id]
-        //     cell.classList.remove('bomb');
-        //     cell.classList.remove('explosion');
-        //     cell.classList.remove('block');
-        //     cell.classList.add('empty');
-        // })
+    powerFound(data) {
+        console.log(data);
+        const position = data.position;
+        const id = position.x * 20 + position.y;
+        const cell = this.elementMAp[id];
+
+        cell.classList.add(data.power);
     }
 
     StartGame(data) {

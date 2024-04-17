@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -47,6 +48,7 @@ func (t *Team) StartGame() {
 	t.Lock()
 	defer t.Unlock()
 	t.Powers = t.GameMap.GeneratePowerUps()
+	log.Println("Powers", t.Powers)
 	t.Start = true
 }
 

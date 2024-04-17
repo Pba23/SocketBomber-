@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -100,9 +101,18 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 	if cell != "wall" {
 		(*gameMap)[b.Position.X][b.Position.Y] = "explode"
 		if cell != "wall" && cell == "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-			for id, player := range playerList {
-				if player.Position.X == b.Position.X && player.Position.Y == b.Position.Y {
-					deadPlayers = append(deadPlayers, id.String())
+			ok := false
+			for _, power := range PowerUps {
+				if power == cell {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				for id, player := range playerList {
+					if player.Position.X == b.Position.X && player.Position.Y == b.Position.Y {
+						deadPlayers = append(deadPlayers, id.String())
+					}
 				}
 			}
 		}
@@ -117,7 +127,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		if cell != "wall" {
 			(*gameMap)[b.Position.X+1][b.Position.Y] = "explode"
 			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				deadPlayers = append(deadPlayers, cell)
+				ok := false
+				for _, power := range PowerUps {
+					if power == cell {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					deadPlayers = append(deadPlayers, cell)
+				}
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -129,7 +148,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		if cell != "wall" {
 			(*gameMap)[b.Position.X-1][b.Position.Y] = "explode"
 			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				deadPlayers = append(deadPlayers, cell)
+				ok := false
+				for _, power := range PowerUps {
+					if power == cell {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					deadPlayers = append(deadPlayers, cell)
+				}
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -141,7 +169,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		if cell != "wall" {
 			(*gameMap)[b.Position.X][b.Position.Y+1] = "explode"
 			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				deadPlayers = append(deadPlayers, cell)
+				ok := false
+				for _, power := range PowerUps {
+					if power == cell {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					deadPlayers = append(deadPlayers, cell)
+				}
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -153,7 +190,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		if cell != "wall" {
 			(*gameMap)[b.Position.X][b.Position.Y-1] = "explode"
 			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				deadPlayers = append(deadPlayers, cell)
+				ok := false
+				for _, power := range PowerUps {
+					if power == cell {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+					deadPlayers = append(deadPlayers, cell)
+				}
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -167,7 +213,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			if cell != "wall" {
 				(*gameMap)[b.Position.X+2][b.Position.Y] = "explode"
 				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					deadPlayers = append(deadPlayers, cell)
+					ok := false
+					for _, power := range PowerUps {
+						if power == cell {
+							ok = true
+							break
+						}
+					}
+					if !ok {
+						deadPlayers = append(deadPlayers, cell)
+					}
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X+2, b.Position.Y)
@@ -179,7 +234,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			if cell != "wall" {
 				(*gameMap)[b.Position.X-2][b.Position.Y] = "explode"
 				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					deadPlayers = append(deadPlayers, cell)
+					ok := false
+					for _, power := range PowerUps {
+						if power == cell {
+							ok = true
+							break
+						}
+					}
+					if !ok {
+						deadPlayers = append(deadPlayers, cell)
+					}
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X-2, b.Position.Y)
@@ -191,7 +255,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			if cell != "wall" {
 				(*gameMap)[b.Position.X][b.Position.Y+2] = "explode"
 				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					deadPlayers = append(deadPlayers, cell)
+					ok := false
+					for _, power := range PowerUps {
+						if power == cell {
+							ok = true
+							break
+						}
+					}
+					if !ok {
+						deadPlayers = append(deadPlayers, cell)
+					}
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X, b.Position.Y+2)
@@ -203,7 +276,16 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			if cell != "wall" {
 				(*gameMap)[b.Position.X][b.Position.Y-2] = "explode"
 				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					deadPlayers = append(deadPlayers, cell)
+					ok := false
+					for _, power := range PowerUps {
+						if power == cell {
+							ok = true
+							break
+						}
+					}
+					if !ok {
+						deadPlayers = append(deadPlayers, cell)
+					}
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X, b.Position.Y-2)
@@ -307,14 +389,14 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			}
 		}
 	}
-
+	log.Println("Power Found", powerFound)
 	if len(powerFound) > 0 {
 		for position, power := range powerFound {
 			resp.FromTeam(team, PowerFound)
 			resp.FromPower(position.X, position.Y, power)
 			team.Broadcast(resp)
 		}
-	} 
+	}
 	// else {
 	// 	resp.FromTeam(team, PowerFound)
 	// 	team.Broadcast(resp)

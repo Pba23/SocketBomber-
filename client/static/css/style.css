@@ -72,34 +72,35 @@ body,
   background-image: url('/static/assets/blocks/block2.svg');
 }
 
-.cell.a{
+.cell.a {
   background-size: 20px 20px !important;
   background-image: url('/static/assets/avatars/a.png');
 }
 
-.cell.b{
+.cell.b {
   background-size: 9px 20px !important;
   background-image: url('/static/assets/avatars/b.png');
 }
 
-.cell.c{
+.cell.c {
   background-image: url('/static/assets/avatars/c.png');
 }
 
-.cell.d{
+.cell.d {
   background-image: url('/static/assets/avatars/d.png');
 }
 
-.cell.bombplaced{
-  background-color: red;
-  /* background: var(--sprite-sheet-bomb); */
-  /* background-image: url('/static/assets/powers/bomb.jpg'); */
+.cell.flash {
+  background-image: url('/static/assets/powers/flash.png');
 }
 
-.cell.bombexplosion{
-  background-image: url('/static/assets/powers/block_spirit_jelly.png');
+.cell.fire {
+  background-image: url('/static/assets/powers/fire.png');
 }
 
+.cell.lindworm {
+  background-image: url('/static/assets/powers/lindworm.png');
+}
 
 #players,
 #messages {
@@ -153,6 +154,7 @@ body,
   background: var(--sprite-sheet-bomb);
   background-size: cover !important;
 }
+
 /* Reduced from 108px */
 /* Reduced from 80px */
 
@@ -278,6 +280,7 @@ body,
     position: relative;
     background: white;
   }
+
   .chat_header {
     display: flex;
     /* padding: 15px; */
@@ -288,6 +291,7 @@ body,
     font-size: 14px;
     background: #f0f0f0;
   }
+
   #container {
     top: 5px;
     grid-template-columns: 1fr;
@@ -300,6 +304,7 @@ body,
     height: 500px;
     top: -20%;
   }
+
   #chat_s {
     overflow-y: auto;
     height: 200Px;
@@ -340,6 +345,7 @@ body,
     left: 0;
 
   }
+
   .message_other {
     border-radius: 10px 10px 0 10px;
     margin-left: calc(100% - 249px);
