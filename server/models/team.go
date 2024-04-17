@@ -46,6 +46,7 @@ func NewTeam(name string, size int) *Team {
 func (t *Team) StartGame() {
 	t.Lock()
 	defer t.Unlock()
+	t.Powers = t.GameMap.GeneratePowerUps()
 	t.Start = true
 }
 
@@ -77,7 +78,7 @@ func (T *Team) ExplodeBomb(bomb *Bomb) []string {
 	resp := new(Response)
 	resp.FromBomb(bomb.Position.X, bomb.Position.Y, bomb.Power)
 	deadPlayers = bomb.Explode(T.GameMap, T.Players, resp)
-	
+
 	resp.FromTeam(T, BombExploded)
 	// fmt.Println(resp)
 	T.Broadcast(resp)

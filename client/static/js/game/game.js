@@ -155,6 +155,7 @@ class Game extends router.Component {
 
     players = {}
     elementMAp = {}
+    start = undefined
 
 
     constructor(props, stateManager) {
@@ -416,22 +417,31 @@ class Game extends router.Component {
         bombElement.style.animationDuration = `${450}ms`
         bombElement.style.transform = `rotate(${randomDegs}deg)`
 
-        setTimeout(() => {
-            // bombElement.classList.remove('explosion');
-            bombElement.className = 'cell';
-            bombElement.style.transition = initialTransition;
-            bombElement.style.animationDuration = initialAnimationDuration;
-            bombElement.style.transform = initialTransform;
+        let start;
+        let frameId;
+        function step(timestamp) {
+            if (start === undefined)
+                start = timestamp;
+            const elapsed = timestamp - start;
 
-        }, 450);
-        // requestAnimationFrame(() => {
-        //     // bombElement.className = 'cell';
-        //     // bombElement.style.transition = initialTransition;
-        //     // bombElement.style.animationDuration = initialAnimationDuration;
-        //     // bombElement.style.transform = initialTransform;
-        // });
+            if (elapsed < 450) { // 450ms is the duration of your timeout
+                frameId = requestAnimationFrame(step);
+            } else {
+                // bombElement.classList.remove('explosion');
+                bombElement.className = 'cell';
+
+                bombElement.style.transition = initialTransition;
+                bombElement.style.animationDuration = initialAnimationDuration;
+                bombElement.style.transform = initialTransform;
+
+                // Cancel the animation frame
+                cancelAnimationFrame(frameId);
+            }
+        }
+
+        frameId = requestAnimationFrame(step);
     }
-
+ 
     playerAttacked(data) {
         const player = this.stateManager.state
         // reduce life of the player

@@ -220,7 +220,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 	gameMap := team.GameMap
 	powers := team.Powers
 	position := new(Position)
-	powerFound := []*Position{}
+	powerFound := map[*Position]string{}
 	resp := new(Response)
 	resp.FromBomb(b.Position.X, b.Position.Y, b.Power)
 	(*gameMap)[b.Position.X][b.Position.Y] = "empty"
@@ -228,7 +228,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 	if power, ok := powers[b.Position]; ok {
 		(*gameMap)[b.Position.X][b.Position.Y] = power
 		position.Update(b.Position.X, b.Position.Y)
-		powerFound = append(powerFound, position)
+		powerFound[position] = power
 	}
 	// Replace the positions around the bomb with 0
 	if b.Position.X+1 < len(*gameMap) && (*gameMap)[b.Position.X+1][b.Position.Y] != "wall" {
@@ -237,7 +237,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 		if power, ok := powers[Position{X: b.Position.X + 1, Y: b.Position.Y}]; ok {
 			(*gameMap)[b.Position.X+1][b.Position.Y] = power
 			position.Update(b.Position.X+1, b.Position.Y)
-			powerFound = append(powerFound, position)
+			powerFound[position] = power
 		}
 	}
 
@@ -247,7 +247,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 		if power, ok := powers[Position{X: b.Position.X - 1, Y: b.Position.Y}]; ok {
 			(*gameMap)[b.Position.X-1][b.Position.Y] = power
 			position.Update(b.Position.X-1, b.Position.Y)
-			powerFound = append(powerFound, position)
+			powerFound[position] = power
 		}
 	}
 	if b.Position.Y+1 < len((*gameMap)[0]) && (*gameMap)[b.Position.X][b.Position.Y+1] != "wall" {
@@ -256,7 +256,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 		if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y + 1}]; ok {
 			(*gameMap)[b.Position.X][b.Position.Y+1] = power
 			position.Update(b.Position.X, b.Position.Y+1)
-			powerFound = append(powerFound, position)
+			powerFound[position] = power
 		}
 	}
 	if b.Position.Y-1 >= 0 && (*gameMap)[b.Position.X][b.Position.Y-1] != "wall" {
@@ -265,7 +265,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 		if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y - 1}]; ok {
 			(*gameMap)[b.Position.X][b.Position.Y-1] = power
 			position.Update(b.Position.X, b.Position.Y-1)
-			powerFound = append(powerFound, position)
+			powerFound[position] = power
 		}
 	}
 
@@ -276,7 +276,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			if power, ok := powers[Position{X: b.Position.X + 2, Y: b.Position.Y}]; ok {
 				(*gameMap)[b.Position.X+2][b.Position.Y] = power
 				position.Update(b.Position.X+2, b.Position.Y)
-				powerFound = append(powerFound, position)
+				powerFound[position] = power
 			}
 		}
 		if b.Position.X-2 >= 0 && (*gameMap)[b.Position.X-2][b.Position.Y] != "wall" {
@@ -285,7 +285,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			if power, ok := powers[Position{X: b.Position.X - 2, Y: b.Position.Y}]; ok {
 				(*gameMap)[b.Position.X-2][b.Position.Y] = power
 				position.Update(b.Position.X-2, b.Position.Y)
-				powerFound = append(powerFound, position)
+				powerFound[position] = power
 			}
 		}
 		if b.Position.Y+2 < len((*gameMap)[0]) && (*gameMap)[b.Position.X][b.Position.Y+2] != "wall" {
@@ -294,7 +294,7 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y + 2}]; ok {
 				(*gameMap)[b.Position.X][b.Position.Y+2] = power
 				position.Update(b.Position.X, b.Position.Y+2)
-				powerFound = append(powerFound, position)
+				powerFound[position] = power
 			}
 		}
 		if b.Position.Y-2 >= 0 && (*gameMap)[b.Position.X][b.Position.Y-2] != "wall" {
@@ -303,23 +303,22 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			if power, ok := powers[Position{X: b.Position.X, Y: b.Position.Y - 2}]; ok {
 				(*gameMap)[b.Position.X][b.Position.Y-2] = power
 				position.Update(b.Position.X, b.Position.Y-2)
-				powerFound = append(powerFound, position)
+				powerFound[position] = power
 			}
 		}
 	}
 
 	if len(powerFound) > 0 {
-		for _, power := range powerFound {
+		for position, power := range powerFound {
 			resp.FromTeam(team, PowerFound)
-			position := new(Position)
-			position.Update(power.X, power.Y)
-			resp.FromPower(power.X, power.Y, powers[*position])
+			resp.FromPower(position.X, position.Y, power)
 			team.Broadcast(resp)
 		}
-	} else {
-		resp.FromTeam(team, PowerFound)
-		team.Broadcast(resp)
-	}
+	} 
+	// else {
+	// 	resp.FromTeam(team, PowerFound)
+	// 	team.Broadcast(resp)
+	// }
 
 	// log.Println("Explosion removed", gameMap)
 }
