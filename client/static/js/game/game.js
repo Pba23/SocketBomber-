@@ -155,7 +155,8 @@ class Game extends router.Component {
 
     players = {}
     elementMAp = {}
-    start = undefined
+    Bombs = {}
+    impacts = {}
 
 
     constructor(props, stateManager) {
@@ -208,7 +209,18 @@ class Game extends router.Component {
             player.position = player.new_position;
             const new_id = player.position.x * 20 + player.position.y;
             const new_cell = this.elementMAp[new_id];
+            new_cell.classList.remove('flash')
+            new_cell.classList.remove('fire')
+            new_cell.classList.remove('lindworm')
             new_cell.classList.add(player.avatar);
+        });
+
+        const bombKeys = Object.keys(this.Bombs);
+        bombKeys.forEach((key) => {
+            const bomb = this.Bombs[key];
+            if (bomb === undefined) return;
+            bomb.classList.add('bomb');
+            this.Bombs[key] = undefined;
         });
     }
 
@@ -390,7 +402,7 @@ class Game extends router.Component {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
         const cell = this.elementMAp[id];
-        cell.classList.add('bomb');
+        this.Bombs[id] = cell
     }
 
     bombExplosion(data) {
