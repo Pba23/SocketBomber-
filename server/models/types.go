@@ -18,4 +18,5 @@ const (
 	PlaceFlame       ReqType = "placeFlame"
 	StartGame        ReqType = "startGame"
 	CheckState       ReqType = "checkState"
+	GameFinished     ReqType = "gameFinished"
 )

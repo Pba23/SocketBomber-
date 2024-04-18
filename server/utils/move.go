@@ -69,5 +69,21 @@ func Move(req *models.Request, Conn *websocket.Conn, team *models.Team, player *
 	response.FromPosition(newPosition.X, newPosition.Y)
 
 	team.Broadcast(response)
+
+	// if team.GameMap.IsGameOver() {
+	// 	resp := new(models.Response)
+	// 	resp.FromTeam(team, models.GameFinished)
+	// 	team.Broadcast(resp)
+	// 	team.State = models.Finished
+	// }
+
+	// if player := team.IsWinner(); player != nil {
+	// 	resp := new(models.Response)
+	// 	resp.FromPlayer(player)
+	// 	resp.FromTeam(team, models.GameOver)
+	// 	team.Broadcast(resp)
+	// 	team.State = models.Finished
+	// }
+
 	config.Engine.Update(team.ID, team)
 }

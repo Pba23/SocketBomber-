@@ -55,9 +55,8 @@ func Game(w http.ResponseWriter, r *http.Request) {
 			}
 
 			is_InTeam := false
-			currentTeam := new(models.Team)
-			// Create a quit channel
-			quit := make(chan bool)
+			id := uuid.UUID{}
+			// quit := make(chan bool)
 
 			config.Engine.Range(func(key uuid.UUID, team *models.Team) bool {
 				if team.State == models.Waiting {
@@ -73,11 +72,13 @@ func Game(w http.ResponseWriter, r *http.Request) {
 					team.Broadcast(response)
 					is_InTeam = true
 					// config.Engine.Update(team.ID, team)
-					currentTeam = team
+					id = team.ID
+					// currentTeam = team
 					return false
 				}
 				return true
 			})
+			// log.Println(quit)
 
 			if !is_InTeam {
 				team := models.NewTeam(fmt.Sprintf("Team %d", config.Engine.Size()+1), models.MaxPlayers)
@@ -88,32 +89,22 @@ func Game(w http.ResponseWriter, r *http.Request) {
 				response.FromPlayer(newPlayer)
 
 				team.Broadcast(response)
-				currentTeam = team
+				// currentTeam = team
+				id = team.ID
 				config.Engine.Add(team.ID, team)
 			}
-
+			currentTeam := config.Engine.Get(id)
 			if currentTeam != nil {
-
 				if len(currentTeam.Players) == 2 {
-					PlayGame(currentTeam, quit)
-				}
-
-				if len(currentTeam.Players) == models.MaxPlayers {
-					currentTeam.State = models.TeamPlaying
-
-					currentTeam.GameMap = models.NewMap(config.MapSize)
-					currentTeam.GameMap.GenerateGameTerrain(len(currentTeam.Players))
-
-					resp := new(models.Response)
-					resp.FromTeam(currentTeam, models.ReqType(models.TeamPlaying))
-
-					currentTeam.Broadcast(resp)
-
-					quit <- true
-					StartGame(currentTeam, make(chan bool))
+					currentTeam.Init = time.Now()
+					PlayGame(currentTeam, currentTeam.Quit)
+				} else if len(currentTeam.Players) == models.MaxPlayers {
+					currentTeam.Quit <- true
+					PlayGame(currentTeam, currentTeam.Quit)
 				}
 			}
-
+			config.Engine.Add(id, currentTeam)
+			
 		} else if req.Type == models.CheckState {
 			team := config.Engine.Get(req.TeamId)
 			if team == nil {
@@ -145,8 +136,11 @@ func Game(w http.ResponseWriter, r *http.Request) {
 		} else {
 			GamePlay(req, conn)
 		}
+		
 	}
-}
+		
+	}
+
 
 func GamePlay(req *models.Request, conn *websocket.Conn) {
 	team := config.Engine.Get(req.TeamId)
@@ -209,63 +203,93 @@ func GamePlay(req *models.Request, conn *websocket.Conn) {
 }
 
 // StartGame starts the game after 10 seconds.
-func StartGame(team *models.Team, quit chan bool) {
+func StartGame(team *models.Team) {
 	go func() {
-		select {
-		case <-quit:
-			// Stop the goroutine
-			return
-		default:
-			// Wait for 10 seconds
-			time.Sleep(10 * time.Second)
+		// select {
+		// case <-quit:
+		// 	// Stop the goroutine
+		// 	return
+		// default:
+		// Wait for 10 seconds
+		time.Sleep(10 * time.Second)
 
-			team.StartGame()
+		team.StartGame()
 
-			positions := team.GameMap.GenerateStartingAreas(team.Players)
+		positions := team.GameMap.GenerateStartingAreas(team.Players)
+		// log.Println(positions)
+		for i, player := range team.Players {
+			player.Position.Update(positions[i].X, positions[i].Y)
 
-			for i, player := range team.Players {
-				player.Position.Update(positions[i].X, positions[i].Y)
+			resp := new(models.Response)
+			resp.FromPlayer(player)
 
-				resp := new(models.Response)
-				resp.FromPlayer(player)
+			resp.FromPosition(player.Position.X, player.Position.Y)
+			resp.FromTeam(team, models.StartGame)
 
-				resp.FromPosition(player.Position.X, player.Position.Y)
-				resp.FromTeam(team, models.StartGame)
-
-				team.AddPlayer(player)
-				team.Broadcast(resp)
-			}
-
-			config.Engine.Update(team.ID, team)
+			team.AddPlayer(player)
+			team.Broadcast(resp)
 		}
+
+		config.Engine.Update(team.ID, team)
+		// }
 	}()
 }
 
 // PlayGame plays the game.
 func PlayGame(team *models.Team, channel chan bool) {
+
+	if <-team.Quit || time.Since(team.Init) > 20*time.Second {
+		   log.Println("No signal on channel, continuing execution")
+   
+		   team.State = models.TeamPlaying
+   
+		   team.GameMap = models.NewMap(config.MapSize)
+		   // team.GameMap.GenerateGameTerrain(len(team.Players))
+   
+		   resp := new(models.Response)
+		   resp.FromTeam(team, models.ReqType(models.TeamPlaying))
+		   team.GameMap.GenerateGameTerrain(len(team.Players))
+   
+		   team.Broadcast(resp)
+		   StartGame(team)
+	}
 	// Create a quit channel
-	quit := make(chan bool)
+	// quit := make(chan bool)
 
-	go func() {
-		select {
-		case <-channel:
-			quit <- true
-			return
-		default:
-			time.Sleep(20 * time.Second)
+	// if len(currentTeam.Players) == models.MaxPlayers {
+	// 	currentTeam.State = models.TeamPlaying
+	// 	currentTeam.GameMap = models.NewMap(config.MapSize)
 
-			team.State = models.TeamPlaying
+	// 	resp := new(models.Response)
+	// 	resp.FromTeam(currentTeam, models.ReqType(models.TeamPlaying))
+	// 	currentTeam.GameMap.GenerateGameTerrain(len(currentTeam.Players))
 
-			team.GameMap = models.NewMap(config.MapSize)
-			team.GameMap.GenerateGameTerrain(len(team.Players))
+	// 	currentTeam.Broadcast(resp)
 
-			resp := new(models.Response)
-			resp.FromTeam(team, models.ReqType(models.TeamPlaying))
+	// 	// StartGame(currentTeam, nil)
 
-			team.Broadcast(resp)
+	// 	currentTeam.Quit <- true
+	// 	// Send quit signal after starting the game
+	// }
 
-			StartGame(team, quit)
-		}
+	
 
-	}()
+	// go func(quit chan bool) {
+	// 	log.Println("Playing game", <-quit)
+
+	// 	if c := <-channel; c {
+	// 		log.Println("Quitting")
+	// 	} else {
+	// 		log.Println("No signal on channel, continuing execution")
+	// 	}
+	// 	// select {
+	// 	// case <-channel:
+	// 	// 	log.Println("Quitting")
+	// 	// 	// StartGame(team)
+	// 	// 	// quit <- true
+	// 	// 	return
+	// 	// default:
+
+	
+	// }(channel)
 }

@@ -176,3 +176,14 @@ func (m *Map) GeneratePowerUps() map[Position]string {
 	}
 	return powers
 }
+
+func (m *Map) IsGameOver() bool {
+	for _, row := range *m {
+		for _, cell := range row {
+			if cell == "block" {
+				return false
+			}
+		}
+	}
+	return true
+}

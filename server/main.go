@@ -31,5 +31,7 @@ func main() {
 
 	mux.HandleFunc("/gamesocket", handlers.Game)
 
+	//log.Fatalln(http.ListenAndServe("192.168.225.129:8080", mux))
 	log.Fatalln(http.ListenAndServe(":8080", mux))
+
 }

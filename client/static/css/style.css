@@ -1,7 +1,7 @@
 :root {
-  --sprite-sheet-explosion: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/explosion.png");
-  --sprite-sheet-bomb: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/bomb.png");
-  --custom-cursor: url("https://raw.githubusercontent.com/cicero-mello/codepen/main/lets-explode-some-bombs/aim.png") 7 7, auto;
+  --sprite-sheet-explosion: url("/static/assets/explosion.png");
+  --sprite-sheet-bomb: url("/static/assets/bomb.png");
+  --custom-cursor: url("/static/assets/aim.png") 7 7, auto;
 }
 
 * {
@@ -143,8 +143,9 @@ body,
   height: 20px;
   background: var(--sprite-sheet-explosion);
   background-size: cover;
-  animation: animateExplosion 0.45s steps(17, end) forwards;
-  animation-iteration-count: 1;
+  background-position: -150px;
+  /* animation: animateExplosion 0.45s steps(17, end) forwards; */
+  /* animation-iteration-count: 1; */
   /* z-index: 1; */
 }
 

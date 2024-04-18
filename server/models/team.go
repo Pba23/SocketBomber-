@@ -2,6 +2,7 @@ package models
 
 import (
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -27,6 +28,8 @@ type Team struct {
 	GameMap *Map                  `json:"map"`
 	Start   bool                  `json:"start"`
 	Powers  map[Position]string   `json:"powers"`
+	Quit    chan bool
+	Init 	time.Time
 }
 
 // // NewTeam creates a new team.
@@ -38,6 +41,7 @@ func NewTeam(name string, size int) *Team {
 		State:   Waiting,
 		GameMap: NewMap(size),
 		Start:   false,
+		Quit:    make(chan bool),
 	}
 	return t
 }
@@ -82,6 +86,20 @@ func (T *Team) ExplodeBomb(bomb *Bomb) []string {
 func (T *Team) RemoveExplosion(bomb *Bomb) {
 	// log.Println("Removing explosion")
 	bomb.RemoveExplosion(T)
+}
+
+func (T *Team) IsWinner() *Player {
+	players := []*Player{}
+
+	for _, player := range T.Players {
+		if !player.IsDead() {
+			players = append(players, player)
+		}
+	}
+	if len(players) == 1 {
+		return players[0]
+	}
+	return nil
 }
 
 // // NewTeam creates a new team.
