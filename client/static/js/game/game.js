@@ -219,8 +219,10 @@ class Game extends router.Component {
         const bombKeys = Object.keys(this.Bombs);
         bombKeys.forEach((key) => {
             const bomb = this.Bombs[key];
-            if (bomb === undefined) return;
-            bomb.classList.add('bomb');
+            // tu as share le server <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,
+            if (bomb === undefined || bomb === false) return;
+            const cell = this.elementMAp[key]
+            cell.classList.add('bomb');
             delete this.Bombs[key];
         });
 
@@ -233,6 +235,7 @@ class Game extends router.Component {
                 const cell = this.elementMAp[id]
                 this.explodeBomb(cell);
             })
+            console.log(impacts);
             delete this.impacts[impacts];
         });
 
@@ -423,8 +426,7 @@ class Game extends router.Component {
     placeBomb(data) {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
-        const cell = this.elementMAp[id];
-        this.Bombs[id] = cell
+        this.Bombs[id] = true;
     }
 
     bombExplosion(data) {

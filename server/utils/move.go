@@ -8,14 +8,9 @@ import (
 )
 
 func Move(req *models.Request, Conn *websocket.Conn, team *models.Team, player *models.Player) {
-	// player.Unlock()
-	// defer player.Unlock()
-
-	// Position := &models.Position{
-	// 	X: player.Position.X,
-	// 	Y: player.Position.Y,
-	// }
-
+	if player.IsDead() {
+		return
+	}
 	newPosition := &models.Position{
 		X: req.Position.X + player.Position.X,
 		Y: req.Position.Y + player.Position.Y,
