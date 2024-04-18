@@ -91,10 +91,15 @@ func (b *Bomb) NewBomb(x, y int, power string) {
 	b.Impact = []Position{}
 }
 
-func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response *Response) []string {
+func (b *Bomb) Explode(team *Team) []string {
+	gameMap := team.GameMap
+	// playerList := team.Players
 	b.Timer = 0
 	b.Exploded = true
 	deadPlayers := []string{}
+
+	response := new(Response)
+	response.FromTeam(team, BombExploded)
 
 	cell := (*gameMap)[b.Position.X][b.Position.Y]
 	if cell != "wall" {
@@ -207,7 +212,9 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			}
 		}
 	}
-	// b.Exploded = true
+	b.Exploded = true
+	team.Broadcast(response)
+
 	// log.Println(deadPlayers, "deadPlayers")
 	return deadPlayers
 }

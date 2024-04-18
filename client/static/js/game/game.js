@@ -157,6 +157,7 @@ class Game extends router.Component {
     elementMAp = {}
     Bombs = {}
     impacts = {}
+    impactsId = 0
     powers = {}
 
 
@@ -219,24 +220,25 @@ class Game extends router.Component {
         const bombKeys = Object.keys(this.Bombs);
         bombKeys.forEach((key) => {
             const bomb = this.Bombs[key];
-            // tu as share le server <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,
             if (bomb === undefined || bomb === false) return;
             const cell = this.elementMAp[key]
             cell.classList.add('bomb');
+            this.Bombs[key] = false;
             delete this.Bombs[key];
         });
 
         const impactKeys = Object.keys(this.impacts);
-        impactKeys.forEach((impacts) => {
-            if (impacts === undefined) return;
-            impacts.forEach(impact => {
-                const position = impact;
-                const id = position.x * 20 + position.y;
-                const cell = this.elementMAp[id]
-                this.explodeBomb(cell);
-            })
-            console.log(impacts);
-            delete this.impacts[impacts];
+        impactKeys.forEach((key) => {
+            const impact = this.impacts[key]
+            if (impact === undefined || impact === false) return
+
+            const cell = this.elementMAp[key]
+            cell.classList.remove('block')
+
+            this.explodeBomb(cell)
+            this.impacts[key] = false
+            delete this.impacts[key]
+
         });
 
         const powerKeys = Object.keys(this.powers);
@@ -431,8 +433,11 @@ class Game extends router.Component {
 
     bombExplosion(data) {
         const impacts = data.bomb.impact
-        const keys = Object.keys(this.Bombs);
-        this.Bombs[keys.length] = impacts;
+        impacts.forEach((position) => {
+            const id = position.x * 20 + position.y;
+            this.impacts[id] = true
+        })
+
     }
 
     explodeBomb(bombElement) {
@@ -458,7 +463,7 @@ class Game extends router.Component {
             if (elapsed < 450) { // 450ms is the duration of your timeout
                 frameId = requestAnimationFrame(step);
             } else {
-                // bombElement.classList.remove('explosion');
+                bombElement.classList.remove('explosion');
                 bombElement.className = 'cell';
 
                 bombElement.style.transition = initialTransition;
@@ -526,8 +531,8 @@ class Game extends router.Component {
     powerFound(data) {
         const position = data.position;
         const id = position.x * 20 + position.y;
-        
-        this.powers[id] =  data.power 
+
+        this.powers[id] = data.power
     }
 
     StartGame(data) {

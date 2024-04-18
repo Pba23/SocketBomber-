@@ -84,6 +84,9 @@ func (r *Response) FromBomb(x, y int, power string) {
 }
 
 func (r *Response) FromImpact(posiX, posiY int) {
+	if r.Bomb == nil {
+		r.Bomb = new(Bomb)
+	}
 	r.Bomb.Impact = append(r.Bomb.Impact, Position{X: posiX, Y: posiY})
 }
 

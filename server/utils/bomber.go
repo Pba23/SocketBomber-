@@ -3,7 +3,6 @@ package utils
 import (
 	"bomberman/config"
 	"bomberman/models"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,8 +14,6 @@ func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team,
 		return
 	}
 	if !(time.Since(player.LastBombPlaced) > 4*time.Second) && player.Powers != models.PowerUps[2] {
-		fmt.Println("bomb should not be placed")
-		// log.Println("PlaceBomb 1", player.LastBombPlaced.After(time.Now().Add(4*time.Second)))
 		return
 	}
 	// player.Lock()
