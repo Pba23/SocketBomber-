@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"sync"
 
 	"github.com/google/uuid"
@@ -48,7 +47,6 @@ func (t *Team) StartGame() {
 	t.Lock()
 	defer t.Unlock()
 	t.Powers = t.GameMap.GeneratePowerUps()
-	log.Println("Powers", t.Powers)
 	t.Start = true
 }
 
@@ -76,16 +74,9 @@ func (t *Team) Broadcast(response *Response) {
 }
 
 func (T *Team) ExplodeBomb(bomb *Bomb) []string {
-	deadPlayers := []string{}
-	resp := new(Response)
-	resp.FromBomb(bomb.Position.X, bomb.Position.Y, bomb.Power)
-	deadPlayers = bomb.Explode(T.GameMap, T.Players, resp)
 
-	resp.FromTeam(T, BombExploded)
-	// fmt.Println(resp)
-	T.Broadcast(resp)
 	// T.Bombs = append(T.Bombs[:i], T.Bombs[i+1:]...)
-	return deadPlayers
+	return bomb.Explode(T)
 }
 
 func (T *Team) RemoveExplosion(bomb *Bomb) {
