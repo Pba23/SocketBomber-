@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -304,7 +303,6 @@ func (b *Bomb) RemoveExplosion(team *Team) {
 			}
 		}
 	}
-	log.Println("Power Found", powerFound)
 	if len(powerFound) > 0 {
 		for position, power := range powerFound {
 			resp.FromTeam(team, PowerFound)
