@@ -155,6 +155,8 @@ class Game extends router.Component {
 
     players = {}
     elementMAp = {}
+    Bombs = {}
+    impacts = {}
 
 
     constructor(props, stateManager) {
@@ -207,7 +209,18 @@ class Game extends router.Component {
             player.position = player.new_position;
             const new_id = player.position.x * 20 + player.position.y;
             const new_cell = this.elementMAp[new_id];
+            new_cell.classList.remove('flash')
+            new_cell.classList.remove('fire')
+            new_cell.classList.remove('lindworm')
             new_cell.classList.add(player.avatar);
+        });
+
+        const bombKeys = Object.keys(this.Bombs);
+        bombKeys.forEach((key) => {
+            const bomb = this.Bombs[key];
+            if (bomb === undefined) return;
+            bomb.classList.add('bomb');
+            this.Bombs[key] = undefined;
         });
     }
 
@@ -360,7 +373,7 @@ class Game extends router.Component {
                 this.bombExplosion(resp)
                 return;
             case "powerFound":
-                this.removeExplosion(resp)
+                this.powerFound(resp)
                 return;
             case "playerEliminated":
                 this.playerAttacked(resp)
@@ -389,7 +402,7 @@ class Game extends router.Component {
         const position = data.bomb.position;
         const id = position.x * 20 + position.y;
         const cell = this.elementMAp[id];
-        cell.classList.add('bomb');
+        this.Bombs[id] = cell
     }
 
     bombExplosion(data) {
@@ -416,20 +429,29 @@ class Game extends router.Component {
         bombElement.style.animationDuration = `${450}ms`
         bombElement.style.transform = `rotate(${randomDegs}deg)`
 
-        setTimeout(() => {
-            // bombElement.classList.remove('explosion');
-            bombElement.className = 'cell';
-            bombElement.style.transition = initialTransition;
-            bombElement.style.animationDuration = initialAnimationDuration;
-            bombElement.style.transform = initialTransform;
+        let start;
+        let frameId;
+        function step(timestamp) {
+            if (start === undefined)
+                start = timestamp;
+            const elapsed = timestamp - start;
 
-        }, 450);
-        // requestAnimationFrame(() => {
-        //     // bombElement.className = 'cell';
-        //     // bombElement.style.transition = initialTransition;
-        //     // bombElement.style.animationDuration = initialAnimationDuration;
-        //     // bombElement.style.transform = initialTransform;
-        // });
+            if (elapsed < 450) { // 450ms is the duration of your timeout
+                frameId = requestAnimationFrame(step);
+            } else {
+                // bombElement.classList.remove('explosion');
+                bombElement.className = 'cell';
+
+                bombElement.style.transition = initialTransition;
+                bombElement.style.animationDuration = initialAnimationDuration;
+                bombElement.style.transform = initialTransform;
+
+                // Cancel the animation frame
+                cancelAnimationFrame(frameId);
+            }
+        }
+
+        frameId = requestAnimationFrame(step);
     }
 
     playerAttacked(data) {
@@ -482,17 +504,13 @@ class Game extends router.Component {
         // }, 2000);
     }
 
-    removeExplosion(data) {
-        // const impacts = data.bomb.impact
-        // impacts.forEach(impact => {
-        //     const position = impact;
-        //     const id = position.x * 20 + position.y;
-        //     const cell = this.elementMAp[id]
-        //     cell.classList.remove('bomb');
-        //     cell.classList.remove('explosion');
-        //     cell.classList.remove('block');
-        //     cell.classList.add('empty');
-        // })
+    powerFound(data) {
+        console.log(data);
+        const position = data.position;
+        const id = position.x * 20 + position.y;
+        const cell = this.elementMAp[id];
+
+        cell.classList.add(data.power);
     }
 
     StartGame(data) {
