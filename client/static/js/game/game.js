@@ -217,8 +217,10 @@ class Game extends router.Component {
         });
 
         const bombKeys = Object.keys(this.Bombs);
+        console.log(bombKeys)
         bombKeys.forEach((key) => {
             const bomb = this.Bombs[key];
+            console.log(bomb)
             if (bomb === undefined) return;
             bomb.classList.add('bomb');
             delete this.Bombs[key];
