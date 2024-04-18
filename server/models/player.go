@@ -100,21 +100,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 	cell := (*gameMap)[b.Position.X][b.Position.Y]
 	if cell != "wall" {
 		(*gameMap)[b.Position.X][b.Position.Y] = "explode"
-		if cell != "wall" && cell == "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-			ok := false
-			for _, power := range PowerUps {
-				if power == cell {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				for id, player := range playerList {
-					if player.Position.X == b.Position.X && player.Position.Y == b.Position.Y {
-						deadPlayers = append(deadPlayers, id.String())
-					}
-				}
-			}
+		if cell != "wall" && cell == "bomb" && cell != "empty" && cell != "explode" && cell != "block" && cell != PowerUps[0] && cell != PowerUps[1] && cell != PowerUps[2] {
+			deadPlayers = append(deadPlayers, cell)
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
 			response.FromImpact(b.Position.X, b.Position.Y)
@@ -126,17 +113,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		cell = (*gameMap)[b.Position.X+1][b.Position.Y]
 		if cell != "wall" {
 			(*gameMap)[b.Position.X+1][b.Position.Y] = "explode"
-			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				ok := false
-				for _, power := range PowerUps {
-					if power == cell {
-						ok = true
-						break
-					}
-				}
-				if !ok {
-					deadPlayers = append(deadPlayers, cell)
-				}
+			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+				deadPlayers = append(deadPlayers, cell)
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -147,17 +125,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		cell = (*gameMap)[b.Position.X-1][b.Position.Y]
 		if cell != "wall" {
 			(*gameMap)[b.Position.X-1][b.Position.Y] = "explode"
-			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				ok := false
-				for _, power := range PowerUps {
-					if power == cell {
-						ok = true
-						break
-					}
-				}
-				if !ok {
-					deadPlayers = append(deadPlayers, cell)
-				}
+			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+				deadPlayers = append(deadPlayers, cell)
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -168,17 +137,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		cell = (*gameMap)[b.Position.X][b.Position.Y+1]
 		if cell != "wall" {
 			(*gameMap)[b.Position.X][b.Position.Y+1] = "explode"
-			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				ok := false
-				for _, power := range PowerUps {
-					if power == cell {
-						ok = true
-						break
-					}
-				}
-				if !ok {
-					deadPlayers = append(deadPlayers, cell)
-				}
+			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+				deadPlayers = append(deadPlayers, cell)
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -189,17 +149,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 		cell = (*gameMap)[b.Position.X][b.Position.Y-1]
 		if cell != "wall" {
 			(*gameMap)[b.Position.X][b.Position.Y-1] = "explode"
-			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-				ok := false
-				for _, power := range PowerUps {
-					if power == cell {
-						ok = true
-						break
-					}
-				}
-				if !ok {
-					deadPlayers = append(deadPlayers, cell)
-				}
+			if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+				deadPlayers = append(deadPlayers, cell)
 			}
 		}
 		if cell != "wall" || cell == "bomb" || cell == "block" {
@@ -212,17 +163,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			cell = (*gameMap)[b.Position.X+2][b.Position.Y]
 			if cell != "wall" {
 				(*gameMap)[b.Position.X+2][b.Position.Y] = "explode"
-				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					ok := false
-					for _, power := range PowerUps {
-						if power == cell {
-							ok = true
-							break
-						}
-					}
-					if !ok {
-						deadPlayers = append(deadPlayers, cell)
-					}
+				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+					deadPlayers = append(deadPlayers, cell)
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X+2, b.Position.Y)
@@ -233,17 +175,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			cell = (*gameMap)[b.Position.X-2][b.Position.Y]
 			if cell != "wall" {
 				(*gameMap)[b.Position.X-2][b.Position.Y] = "explode"
-				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					ok := false
-					for _, power := range PowerUps {
-						if power == cell {
-							ok = true
-							break
-						}
-					}
-					if !ok {
-						deadPlayers = append(deadPlayers, cell)
-					}
+				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+					deadPlayers = append(deadPlayers, cell)
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X-2, b.Position.Y)
@@ -254,17 +187,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			cell = (*gameMap)[b.Position.X][b.Position.Y+2]
 			if cell != "wall" {
 				(*gameMap)[b.Position.X][b.Position.Y+2] = "explode"
-				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					ok := false
-					for _, power := range PowerUps {
-						if power == cell {
-							ok = true
-							break
-						}
-					}
-					if !ok {
-						deadPlayers = append(deadPlayers, cell)
-					}
+				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+					deadPlayers = append(deadPlayers, cell)
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X, b.Position.Y+2)
@@ -275,17 +199,8 @@ func (b *Bomb) Explode(gameMap *Map, playerList map[uuid.UUID]*Player, response 
 			cell = (*gameMap)[b.Position.X][b.Position.Y-2]
 			if cell != "wall" {
 				(*gameMap)[b.Position.X][b.Position.Y-2] = "explode"
-				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" {
-					ok := false
-					for _, power := range PowerUps {
-						if power == cell {
-							ok = true
-							break
-						}
-					}
-					if !ok {
-						deadPlayers = append(deadPlayers, cell)
-					}
+				if cell != "wall" && cell != "bomb" && cell != "empty" && cell != "explode" && cell != "block" && PowerUps[0] != cell && PowerUps[1] != cell && PowerUps[2] != cell {
+					deadPlayers = append(deadPlayers, cell)
 				}
 				if cell != "wall" || cell == "bomb" || cell == "block" {
 					response.FromImpact(b.Position.X, b.Position.Y-2)
