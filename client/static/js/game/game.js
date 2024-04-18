@@ -157,6 +157,7 @@ class Game extends router.Component {
     elementMAp = {}
     Bombs = {}
     impacts = {}
+    powers = {}
 
 
     constructor(props, stateManager) {
@@ -220,7 +221,28 @@ class Game extends router.Component {
             const bomb = this.Bombs[key];
             if (bomb === undefined) return;
             bomb.classList.add('bomb');
-            this.Bombs[key] = undefined;
+            delete this.Bombs[key];
+        });
+
+        const impactKeys = Object.keys(this.impacts);
+        impactKeys.forEach((impacts) => {
+            if (impacts === undefined) return;
+            impacts.forEach(impact => {
+                const position = impact;
+                const id = position.x * 20 + position.y;
+                const cell = this.elementMAp[id]
+                this.explodeBomb(cell);
+            })
+            delete this.impacts[impacts];
+        });
+
+        const powerKeys = Object.keys(this.powers);
+        powerKeys.forEach((key) => {
+            const power = this.powers[key];
+            if (power === undefined) return;
+            const cell = this.elementMAp[key]
+            cell.classList.add(power);
+            delete this.powers[key];
         });
     }
 
@@ -406,14 +428,9 @@ class Game extends router.Component {
     }
 
     bombExplosion(data) {
-        console.log(data);
         const impacts = data.bomb.impact
-        impacts.forEach(impact => {
-            const position = impact;
-            const id = position.x * 20 + position.y;
-            const cell = this.elementMAp[id]
-            this.explodeBomb(cell);
-        })
+        const keys = Object.keys(this.Bombs);
+        this.Bombs[keys.length] = impacts;
     }
 
     explodeBomb(bombElement) {
@@ -505,12 +522,10 @@ class Game extends router.Component {
     }
 
     powerFound(data) {
-        console.log(data);
         const position = data.position;
         const id = position.x * 20 + position.y;
-        const cell = this.elementMAp[id];
-
-        cell.classList.add(data.power);
+        
+        this.powers[id] =  data.power 
     }
 
     StartGame(data) {
