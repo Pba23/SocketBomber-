@@ -524,9 +524,32 @@ class Game extends router.Component {
     gameOver(data) {
         console.log(" hitted by bomb ", data)
         const player = this.stateManager.state
-        console.log(player)
         // Create a new notification
         const chatContainer = document.getElementById('chat_s')
+        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life >= 0) {
+            const playerContainer = document.getElementById(`${data.id}-life`);
+            const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
+            const lastChild = listOfLife[listOfLife.length - 1];
+            lastChild.classList.remove('lifefull')
+            lastChild.classList.add('lifeempty')
+            // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+            // let playerLife = document.querySelector('.player-life i.full:last-child')
+
+        } else {
+            if (data.life >= 0) {
+                const playerContainer = document.getElementById(`${data.id}-life`);
+                const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
+                const lastChild = listOfLife[listOfLife.length - 1];
+                lastChild.classList.remove('lifefull')
+                lastChild.classList.add('lifeempty')
+                // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
+                // console.log(lastChild)
+
+                // let playerLife = document.querySelector('.player-life i.full:last-child')
+                // console.log(playerLife)
+                // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
+            }
+        }
         if ((player && player.id !== undefined && data !== undefined) && player.id === data.id) {
             const notificationToPlayer = createElement('div', { class: 'message message_other' }, [
                 createElement('div', { class: 'chat_message' }, "Game Over For You, you've been killed"),
