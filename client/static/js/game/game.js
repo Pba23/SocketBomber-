@@ -218,7 +218,6 @@ class Game extends router.Component {
         });
 
         const bombKeys = Object.keys(this.Bombs);
-        console.log(bombKeys)
         bombKeys.forEach((key) => {
             const bomb = this.Bombs[key];
             if (bomb === undefined || bomb === false) return;
@@ -480,9 +479,9 @@ class Game extends router.Component {
     }
 
     playerAttacked(data) {
-        const player = this.stateManager.state
+        const player = this.state
         // reduce life of the player
-        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life >= 0) {
+        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life > 0) {
             this.playerEliminationNotification(data.id)
             const playerContainer = document.getElementById(`${data.id}-life`);
             const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
@@ -564,7 +563,7 @@ class Game extends router.Component {
 
     gameOver(data) {
         console.log(" hitted by bomb ", data)
-        const player = this.stateManager.state
+        const player = this.state
         // Create a new notification
         const chatContainer = document.getElementById('chat_s')
         if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life >= 0) {
