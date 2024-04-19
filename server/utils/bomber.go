@@ -40,10 +40,10 @@ func PlaceBomb(request *models.Request, conn *websocket.Conn, team *models.Team,
 			response := new(models.Response)
 			response.FromPlayer(deadPlayer)
 			if isDead {
-				response.FromPlayer(player)
+				// response.FromPlayer(player)
 				response.FromTeam(team, models.PlayerDead)
 			} else {
-				response.FromPlayer(player)
+				// response.FromPlayer(player)
 				response.FromTeam(team, models.PlayerEliminated)
 			}
 			team.Broadcast(response)

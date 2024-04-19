@@ -250,10 +250,17 @@ class Game extends router.Component {
             delete this.powers[key];
         });
 
-        if (this.lifeDowm != undefined) {
+        if (this.lifeDowm.data != undefined) {
             if (this.lifeDowm.life != this.state.life) {
-                if ((this.state && this.state.id !== undefined && this.lifeDown?.data !== undefined) && this.state.id === this.lifeDowm.data.id && this.lifeDowm.data.life > 0) {
-                    this.playerEliminationNotification(data.id)
+                if (this.state.id === this.lifeDowm?.data.id && this.lifeDowm?.data?.life > 0) {
+                    // Create a new notification
+                    const chatContainer = document.getElementById('chat_s')
+                    const notification = createElement('div', { class: 'message message_other' }, [
+                        createElement('div', { class: 'chat_message' }, "You've been hitted"),
+                        createElement('div', { class: 'message_name' }, 'Game Server')
+                    ]);
+                    chatContainer.appendChild(notification)
+
                     const playerContainer = document.getElementById(`${this.lifeDowm.data.id}-life`);
                     const listOfLife = playerContainer.querySelectorAll('.player-life i.bxs-bomb');
                     const lastChild = listOfLife[listOfLife.length - 1];
@@ -280,6 +287,46 @@ class Game extends router.Component {
                 }
             }
             delete this.lifeDowm["data"]
+        }
+
+        if (this.lifeDowm.gameOver != undefined) {
+            // Create a new notification
+            const chatContainer = document.getElementById('chat_s')
+            if (this.state.id === this.lifeDowm?.gameOver.id && this.lifeDowm?.gameOver.life == 0) {
+                const playerContainer = document.getElementById(`${this.lifeDowm.gameOver.id}-life`);
+                const listOfLife = playerContainer.querySelectorAll('.player-life i.bxs-bomb');
+                const lastChild = listOfLife[listOfLife.length - 1];
+                lastChild.classList.remove('bxs-bomb')
+                lastChild.classList.add('bx-bomb')
+                const notificationToPlayer = createElement('div', { class: 'message message_other' }, [
+                    createElement('div', { class: 'chat_message' }, "Game Over For You, you've been killed"),
+                    createElement('div', { class: 'game-over' }, [
+                        createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
+                    ]),
+                    createElement('div', { class: 'message_name' }, 'Game Server')
+                ]);
+                chatContainer.appendChild(notificationToPlayer)
+                this.componentWillUnmount()
+                this.state.life = 0
+            } else {
+                if (this.lifeDowm?.gameOver?.life == 0) {
+                    const playerContainer = document.getElementById(`${this.lifeDowm.gameOver.id}-life`);
+                    const listOfLife = playerContainer.querySelectorAll('.player-life i.bxs-bomb');
+                    const lastChild = listOfLife[listOfLife.length - 1];
+                    lastChild.classList.remove('bxs-bomb')
+                    lastChild.classList.add('bx-bomb')
+
+                    const notificationToTeam = createElement('div', { class: 'message other' }, [
+                        createElement('div', { class: 'chat_message' }, `${this.lifeDowm.gameOver.nickname} is dead`),
+                        createElement('div', { class: 'message_name' }, 'Game Server')
+                    ]);
+                    chatContainer.appendChild(notificationToTeam)
+                }
+            }
+            // if (this.state.id === this.lifeDowm?.gameOver?.id) {
+            // } else {
+            // }
+            delete this.lifeDowm["gameOver"]
         }
 
     }
@@ -517,16 +564,10 @@ class Game extends router.Component {
     }
 
     // FUNCTION SHOWING SAID Player is attacked
-    playerEliminationNotification(data) {
-        // console.log("Player Xnickname hitted by bomb ", data)
-        // Create a new notification
-        const chatContainer = document.getElementById('chat_s')
-        // console.log(chatContainer)
-        const notification = createElement('div', { class: 'message message_other' }, [
-            createElement('div', { class: 'chat_message' }, "You've been hitted"),
-            createElement('div', { class: 'message_name' }, 'Game Server')
-        ]);
-        chatContainer.appendChild(notification)
+    playerEliminationNotification() {
+        if (data.life > 0) {
+            this.lifeDowm.data = data
+        }
         // console.log(chatContainer)
 
         // Remove the notification after 2 seconds
@@ -571,52 +612,9 @@ class Game extends router.Component {
 
     gameOver(data) {
         console.log(" hitted by bomb ", data)
-        const player = this.state
-        // Create a new notification
-        const chatContainer = document.getElementById('chat_s')
-        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id && data.life >= 0) {
-            const playerContainer = document.getElementById(`${data.id}-life`);
-            const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
-            const lastChild = listOfLife[listOfLife.length - 1];
-            lastChild.classList.remove('lifefull')
-            lastChild.classList.add('lifeempty')
-            // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
-            // let playerLife = document.querySelector('.player-life i.full:last-child')
-
-        } else {
-            if (data.life >= 0) {
-                const playerContainer = document.getElementById(`${data.id}-life`);
-                const listOfLife = playerContainer.querySelectorAll('.player-life i.lifefull');
-                const lastChild = listOfLife[listOfLife.length - 1];
-                lastChild.classList.remove('lifefull')
-                lastChild.classList.add('lifeempty')
-                // const lastPlayerLife = playerContainer.querySelector('.player-life i.full:last-child');
-                // console.log(lastChild)
-
-                // let playerLife = document.querySelector('.player-life i.full:last-child')
-                // console.log(playerLife)
-                // document.querySelector(`.player-${player.id}`).style.textDecoration = "line-through";
-            }
+        if (data.life == 0) {
+            this.lifeDowm.gameOver = data
         }
-        if ((player && player.id !== undefined && data !== undefined) && player.id === data.id) {
-            const notificationToPlayer = createElement('div', { class: 'message message_other' }, [
-                createElement('div', { class: 'chat_message' }, "Game Over For You, you've been killed"),
-                createElement('div', { class: 'game-over' }, [
-                    createElement('button', { class: 'replay', onClick: () => { this.removeState; this.redirectTo('/') } }, 'Replay'),
-                ]),
-                createElement('div', { class: 'message_name' }, 'Game Server')
-            ]);
-            chatContainer.appendChild(notificationToPlayer)
-            this.componentWillUnmount()
-        } else {
-            const notificationToTeam = createElement('div', { class: 'message other' }, [
-                createElement('div', { class: 'chat_message' }, `${data.nickname} is dead`),
-                createElement('div', { class: 'message_name' }, 'Game Server')
-            ]);
-            chatContainer.appendChild(notificationToTeam)
-            console.log(chatContainer)
-        }
-
     }
 
     render() {
