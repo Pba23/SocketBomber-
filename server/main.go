@@ -2,12 +2,22 @@ package main
 
 import (
 	"bomberman/handlers"
+	"flag"
 	"html/template"
 	"log"
 	"net/http"
 )
 
+var (
+	addr = ""
+)
+
 func main() {
+
+	flag.StringVar(&addr, "addr", "localhost:8080", "http service address")
+
+	flag.Parse()
+
 	mux := http.NewServeMux()
 
 	fs := http.FileServer(http.Dir("../client/static/"))
@@ -25,13 +35,9 @@ func main() {
 		}
 	})
 
-	// mux.HandleFunc("/join", handlers.Join)
-
-	// mux.HandleFunc("/waitingroom", handlers.Waitingpage)
-
 	mux.HandleFunc("/gamesocket", handlers.Game)
 
-	//log.Fatalln(http.ListenAndServe("192.168.225.129:8080", mux))
-	log.Fatalln(http.ListenAndServe(":8080", mux))
+	log.Println("Server started on " + addr + " ..." + "\n" + "Press Ctrl+C to stop.")
 
+	log.Fatalln(http.ListenAndServe(addr, mux))
 }

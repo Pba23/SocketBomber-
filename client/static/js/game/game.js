@@ -59,32 +59,8 @@ class Chat extends router.Component {
         }
     }
 
-    // <div id="chat">
-    //         <div class="chat_header">
-    //             <div class="player">1</div>
-    //             <div class="player">2</div>
-    //             <div class="player">3</div>
-    //             <div class="player">4</div>
-    //         </div>
-    //         <div id="chat_s"></div>
-    //         <div class="newMessage">
-    //             <input type="text" value="" oninput="">
-    //             <input id="ss-submit"  value="Submit" onClick="">
-    //         </div>
-    //     </div>
-
-
-
-    // [
-    //     createElement('div', { class: 'player' }, '1'),
-    //     createElement('div', { class: 'player' }, '2'),
-    //     createElement('div', { class: 'player' }, '3'),
-    //     createElement('div', { class: 'player' }, '4'),
-    // ]),
-
     render() {
         const playersObj = this.props.stateManager.state.team.players
-        // console.log(this.props)
         return createElement('div', { id: 'chat' }, [
             createElement('div', { class: 'chat_header' }, [
                 playersObj.map(player => {
@@ -110,14 +86,6 @@ class Chat extends router.Component {
 }
 
 
-// class LoadingScreen extends router.Component {
-//     render() {
-//         return createElement('div', { class: 'loading-screen' }, [
-//             createElement('div', { class: 'spinner' }, 'Loading...'), // You can customize the loading indicator
-//         ]);
-//     }
-// }
-
 class Map extends router.Component {
     constructor(props, stateManager) {
         super(props);
@@ -126,22 +94,10 @@ class Map extends router.Component {
         this.state = resp;
     }
 
-    // componentDidMount() {
-
-    // }
-
-
 
     render() {
-        const game_map = this.state.team.map;
+        // const game_map = this.state.team.map;
         const allElements = Object.values(this.props.elementMAp)
-        // game_map.forEach((row, x) => {
-        //     row.forEach((cell, y) => {
-        //         const id = x * 20 + y;
-        //         this.props.elementMAp[id] = cell;
-        //         allElements.push(createElement('div', { id: `${id}`, class: `cell ${cell}` }))
-        //     });
-        // })
         return createElement('div', { id: 'map' }, [
             allElements.map((element) => {
                 return element
@@ -173,9 +129,9 @@ class Game extends router.Component {
         this.animationFrameId = null;
 
 
-        // if (!this.stateManager.state.id) {
-        //     this.router.navigate('/');
-        // }
+        if (!this.stateManager.state.id) {
+            this.router.navigate('/');
+        }
 
         const resp = new models.Response().fromJSON(stateManager.state);
         this.state = { ...this.state, ...resp.toObject() };
@@ -184,7 +140,6 @@ class Game extends router.Component {
             row.forEach((cell, y) => {
                 const id = x * 20 + y;
                 this.elementMAp[id] = createElement('div', { id: `${id}`, class: `cell ${cell}` });
-                // allElements.push()
             });
         })
 
@@ -331,15 +286,6 @@ class Game extends router.Component {
 
     }
 
-    // handleChatInputFocus = () => {
-    //     this.setState({ isChatInputFocused: true });
-    //     this.disableControls(); // Disable game controls
-    // };
-
-    // handleChatInputBlur = (state) => {
-    //     this.setState({ isChatInputFocused: false });
-    //     this.activateControls(state); // Enable game controls
-    // };
     redirectTo = (path, clear = true) => {
         // this.removeState();
         window.location.pathname = path;
@@ -459,7 +405,6 @@ class Game extends router.Component {
         }
 
         const resp = new models.Response().fromJSON(data);
-        // console.log("RESPONSE", resp);
         switch (resp.type) {
             case 'move':
                 this.movePlayer(resp);
@@ -618,10 +563,6 @@ class Game extends router.Component {
     }
 
     render() {
-        // if (this.state.gameLoading) {
-        //     return new LoadingScreen(this, this.stateManager).render(); // Render a loading screen while the game is loading
-        // }
-        // console.log(this.ws.send)
         return createElement('div', { id: 'container' }, [
             new Map(this, this.stateManager).render(),
             new Chat(this, this.stateManager).render(),
@@ -630,7 +571,3 @@ class Game extends router.Component {
 }
 
 export default Game;
-
-// Usage
-// const timerComponent = 
-// timerComponent.startTimer();

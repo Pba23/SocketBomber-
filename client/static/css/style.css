@@ -62,6 +62,7 @@ body,
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  transition: background-image 0.5s ease-in-out;
 }
 
 .cell.wall {
@@ -73,12 +74,10 @@ body,
 }
 
 .cell.a {
-  background-size: 20px 20px !important;
   background-image: url('/static/assets/avatars/a.png');
 }
 
 .cell.b {
-  background-size: 9px 20px !important;
   background-image: url('/static/assets/avatars/b.png');
 }
 
@@ -138,22 +137,18 @@ body,
 } */
 
 .explosion {
-  /* position: absolute; */
   width: 20px;
   height: 20px;
   background: var(--sprite-sheet-explosion);
   background-size: cover;
   background-position: -120px;
-  /* animation: animateExplosion 0.45s steps(17, end) forwards; */
-  /* animation-iteration-count: 1; */
-  /* z-index: 1; */
 }
 
 .bomb {
   width: 18px;
   height: 23px;
   background: var(--sprite-sheet-bomb);
-  background-size: cover !important;
+  background-size: cover;
 }
 
 /* Reduced from 108px */
