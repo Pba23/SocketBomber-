@@ -79,7 +79,7 @@ class Chat extends router.Component {
             createElement('div', { id: 'chat_s' }),
             createElement('div', { class: 'newMessage' }, [
                 createElement('input', { id: 'newMessage', type: 'text', value: '', oninput: '', onfocus: this.handleInputFocus, onblur: this.handleInputBlur }),
-                createElement('input', { id: 'ss-submit', type: 'button', value: 'Submit', onClick: () => { this.handleSendMessage() } }),
+                createElement('input', { id: 'ss-submit', type: 'button', value: 'Submit', onClick: () => { this.handleSendMessage() },onfocus: this.handleInputFocus, onblur: this.handleInputBlur }),
             ]),
         ]);
     }
