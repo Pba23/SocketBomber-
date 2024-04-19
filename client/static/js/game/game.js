@@ -478,11 +478,11 @@ class Game extends router.Component {
         const initialTransition = bombElement.style.transition;
         const initialAnimationDuration = bombElement.style.animationDuration;
         const initialTransform = bombElement.style.transform;
-        const randomDegs = Math.round(Math.random() * 360)
+        // const randomDegs = Math.round(Math.random() * 360)
         bombElement.className = "explosion"
-        bombElement.style.transition = "unset"
-        bombElement.style.animationDuration = `${450}ms`
-        bombElement.style.transform = `rotate(${randomDegs}deg)`
+        // bombElement.style.transition = "unset"
+        // bombElement.style.animationDuration = `${450}ms`
+        // bombElement.style.transform = `rotate(${randomDegs}deg)`
 
         let start;
         let frameId;
@@ -497,9 +497,9 @@ class Game extends router.Component {
                 bombElement.classList.remove('explosion');
                 bombElement.className = 'cell';
 
-                bombElement.style.transition = initialTransition;
-                bombElement.style.animationDuration = initialAnimationDuration;
-                bombElement.style.transform = initialTransform;
+                // bombElement.style.transition = initialTransition;
+                // bombElement.style.animationDuration = initialAnimationDuration;
+                // bombElement.style.transform = initialTransform;
 
                 // Cancel the animation frame
                 cancelAnimationFrame(frameId);

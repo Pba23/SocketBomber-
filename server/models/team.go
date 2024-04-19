@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -28,12 +29,14 @@ type Team struct {
 	GameMap *Map                  `json:"map"`
 	Start   bool                  `json:"start"`
 	Powers  map[Position]string   `json:"powers"`
-	Quit    chan bool
-	Init 	time.Time
+	Ctx     context.Context
+	Cancel  context.CancelFunc
+	Init    time.Time
 }
 
 // // NewTeam creates a new team.
 func NewTeam(name string, size int) *Team {
+	ctx, cancel := context.WithCancel(context.Background())
 	t := &Team{
 		ID:      uuid.New(),
 		Name:    name,
@@ -41,7 +44,8 @@ func NewTeam(name string, size int) *Team {
 		State:   Waiting,
 		GameMap: NewMap(size),
 		Start:   false,
-		Quit:    make(chan bool),
+		Ctx:     ctx,
+		Cancel:  cancel,
 	}
 	return t
 }
