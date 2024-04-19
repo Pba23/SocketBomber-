@@ -66,39 +66,48 @@ body,
 }
 
 .cell.wall {
-  background-image: url('/static/assets/blocks/block1.svg');
+  background-color: blue;
+  /* background-image: url('/static/assets/blocks/block1.svg'); */
 }
 
 .cell.block {
-  background-image: url('/static/assets/blocks/block2.svg');
+  background-color: green;
+  /* background-image: url('/static/assets/blocks/block2.svg'); */
 }
 
 .cell.a {
-  background-image: url('/static/assets/avatars/a.png');
+  background-color: red;
+  /* background-image: url('/static/assets/avatars/a.png'); */
 }
 
 .cell.b {
-  background-image: url('/static/assets/avatars/b.png');
+  background-color: yellow;
+  /* background-image: url('/static/assets/avatars/b.png'); */
 }
 
 .cell.c {
-  background-image: url('/static/assets/avatars/c.png');
+  background-color: purple;
+  /* background-image: url('/static/assets/avatars/c.png'); */
 }
 
 .cell.d {
-  background-image: url('/static/assets/avatars/d.png');
+  background-color: orange;
+  /* background-image: url('/static/assets/avatars/d.png'); */
 }
 
 .cell.flash {
-  background-image: url('/static/assets/powers/flash.png');
+  background-color: royalblue;
+  /* background-image: url('/static/assets/powers/flash.png'); */
 }
 
 .cell.fire {
-  background-image: url('/static/assets/powers/fire.png');
+  background-color: aqua;
+  /* background-image: url('/static/assets/powers/fire.png'); */
 }
 
 .cell.lindworm {
-  background-image: url('/static/assets/powers/lindworm.png');
+  background-color: pink;
+  /* background-image: url('/static/assets/powers/lindworm.png'); */
 }
 
 #players,
@@ -139,7 +148,8 @@ body,
 .explosion {
   width: 20px;
   height: 20px;
-  background: var(--sprite-sheet-explosion);
+  /* background: var(--sprite-sheet-explosion); */
+  background-color: brown;
   background-size: cover;
   background-position: -120px;
 }
@@ -147,8 +157,10 @@ body,
 .bomb {
   width: 18px;
   height: 23px;
-  background: var(--sprite-sheet-bomb);
+  /* background: var(--sprite-sheet-bomb); */
+  background-color: black;
   background-size: cover;
+
 }
 
 /* Reduced from 108px */
