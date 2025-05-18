@@ -1,48 +1,39 @@
-# Bomberman Game
+# SocketBomber
 
-Ce projet est une implémentation du jeu classique Bomberman. Le serveur est écrit en Go et utilise les WebSockets pour la communication en temps réel. Le client est écrit en JavaScript et utilise notre mini-framework.
+This project is an implementation of the classic Bomberman game. The server is written in Go and uses WebSockets for real-time communication. The client is written in JavaScript and uses our mini-framework.
 
-## Prérequis
-
-- Go version 1.16 ou supérieure
-- Un navigateur moderne supportant JavaScript et les WebSockets
+## Prerequisites
+- Go version 1.16 or higher
+- A modern browser supporting JavaScript and WebSockets
 
 ## Installation
-
-1. Clonez ce dépôt sur votre machine locale :
-
+1. Clone this repository to your local machine:
 ```bash
-git clonehttps://learn.zone01dakar.sn/git/abdotop/bomberman-dom.git
+git clone https://learn.zone01dakar.sn/git/abdotop/bomberman-dom.git
 ```
-
-2. Naviguez vers le répertoire du projet :
+2. Navigate to the project directory:
 ```
 cd bomberman-dom
 ```
-3. Installez les dépendances Go :
+3. Install Go dependencies:
 ```
 go mod tidy
 ```
 
-## Utilisation
-
-1. Lancez le serveur Go :
+## Usage
+1. Launch the Go server:
 ```
 cd server && go run . -addr ?
 ```
+2. Open the URL in your browser to start playing.
 
-2. Ouvrez url dans votre navigateur pour commencer à jouer.
+## Features
+- Real-time multiplayer game using WebSockets
+- Use of our mini-framework JavaScript for the client
+- Game graphics based on CSS
 
-## Fonctionnalités
-
-- Jeu multijoueur en temps réel grâce aux WebSockets
-- Utilisation de notre mini-framework JavaScript pour le client
-- Graphiques de jeu basés sur CSS
-
-
-## Contribuer
-Les contributions sont les bienvenues 
-
+## Contributors
+Contributions are welcome
 - Abdou TOP
 - Cheikh A T DIALLO
 - Papa Alassane BA
